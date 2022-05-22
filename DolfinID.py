@@ -322,7 +322,7 @@ class DolfinIDWindow(QMainWindow, form_class):
         #fields = {'title':'test','filename':item_text_list[1],'md5hash':hash_val,"imagefile": fd}
         #print(fields)
 
-        post_url = "http://127.0.0.1:8000/dolfinrest/dolfinimage_list/"
+        post_url = "http://222.233.253.74:8000/dolfinrest/dolfinimage_list/"
 
         #print(requests.Request('POST', post_url, files=file_hash, data=data_hash).prepare().body)
         response = requests.post(post_url, files=file_hash,data=data_hash)

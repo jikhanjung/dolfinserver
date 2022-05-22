@@ -3,3 +3,4 @@ db.sqlite3
 dolfinrest/migrations/*
 .env
 uploads/*
+scripts/json/*
