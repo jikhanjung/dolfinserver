@@ -24,7 +24,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="btnReadTree">
     <property name="geometry">
      <rect>
       <x>100</x>
@@ -34,7 +34,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
+     <string>Read Tree</string>
     </property>
    </widget>
    <widget class="QListView" name="listView">
@@ -47,7 +47,7 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_2">
+   <widget class="QPushButton" name="btnLoadTree">
     <property name="geometry">
      <rect>
       <x>200</x>
@@ -57,10 +57,10 @@
      </rect>
     </property>
     <property name="text">
-     <string>PushButton2</string>
+     <string>Load Tree</string>
     </property>
    </widget>
-   <widget class="QPushButton" name="pushButton_3">
+   <widget class="QPushButton" name="btnSendImage">
     <property name="geometry">
      <rect>
       <x>470</x>
@@ -70,7 +70,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>PushButton</string>
+     <string>Send Image</string>
     </property>
    </widget>
    <widget class="QTableView" name="tableView">

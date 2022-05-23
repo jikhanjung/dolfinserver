@@ -1,6 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
+def upload_path(instance, filename): 
+    # return f'posts/{instance.content}/{filename}'
+    return '{:4d}/{:02d}/{:02d}/{}'.format(instance.exifdate.year, instance.exifdate.month, instance.exifdate.day,filename)
+
 # Create your models here.
 class DolfinImage(models.Model):
     ipaddress = models.CharField(max_length=100, blank=True, default='')  #request.META.get('HTTP_X_REAL_IP')
@@ -8,7 +12,9 @@ class DolfinImage(models.Model):
     filepath = models.CharField(max_length=200, blank=True, default='')
     filename = models.CharField(max_length=100, blank=True, default='')
     md5hash = models.CharField(max_length=200, blank=True, default='')
-    imagefile = models.ImageField(upload_to ='%Y/%m/%d/')
+    exifdate = models.DateField(blank=True)
+    #imagefile = models.ImageField(upload_to ='%Y/%m/%d/')
+    imagefile = models.ImageField(upload_to=upload_path)
 
 class DolfinUser(AbstractUser):
     firstname = models.CharField( max_length=50, blank=True, null=True,verbose_name=u'이름')

@@ -4,3 +4,4 @@ dolfinrest/migrations/*
 .env
 uploads/*
 scripts/json/*
+log.txt

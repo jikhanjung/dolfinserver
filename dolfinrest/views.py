@@ -20,11 +20,11 @@ from rest_framework.response import Response
 @api_view(['GET', 'POST'])
 def dolfinimage_list(request):
     """
-    List all code snippets, or create a new snippet.
+    List all code dolfinimages, or create a new dolfinimage.
     """
     if request.method == 'GET':
-        snippets = DolfinImage.objects.all()
-        serializer = DolfinImageSerializer(snippets, many=True)
+        dolfinimages = DolfinImage.objects.all()
+        serializer = DolfinImageSerializer(dolfinimages, many=True)
         return Response(serializer.data)
 
     elif request.method == 'POST':
@@ -41,12 +41,12 @@ def dolfinimage_list(request):
 @csrf_exempt
 def dolfinimage_list_old(request):
     """
-    List all code snippets, or create a new snippet.
+    List all code dolfinimages, or create a new dolfinimage.
     """
     print("eeasdf")
     if request.method == 'GET':
-        snippets = DolfinImage.objects.all()
-        serializer = DolfinImageSerializer(snippets, many=True)
+        dolfinimages = DolfinImage.objects.all()
+        serializer = DolfinImageSerializer(dolfinimages, many=True)
         return JsonResponse(serializer.data, safe=False)
 
     elif request.method == 'POST':
@@ -60,27 +60,27 @@ def dolfinimage_list_old(request):
 @csrf_exempt
 def dolfinimage_detail_old(request, pk):
     """
-    Retrieve, update or delete a code snippet.
+    Retrieve, update or delete a code dolfinimage.
     """
     try:
-        snippet = DolfinImage.objects.get(pk=pk)
+        dolfinimage = DolfinImage.objects.get(pk=pk)
     except DolfinImage.DoesNotExist:
         return HttpResponse(status=404)
 
     if request.method == 'GET':
-        serializer = DolfinImageSerializer(snippet)
+        serializer = DolfinImageSerializer(dolfinimage)
         return JsonResponse(serializer.data)
 
     elif request.method == 'PUT':
         data = JSONParser().parse(request)
-        serializer = DolfinImageSerializer(snippet, data=data)
+        serializer = DolfinImageSerializer(dolfinimage, data=data)
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(serializer.data)
         return JsonResponse(serializer.errors, status=400)
 
     elif request.method == 'DELETE':
-        snippet.delete()
+        dolfinimage.delete()
         return HttpResponse(status=204)
 
 @csrf_exempt
@@ -89,24 +89,24 @@ def dolfinimage_detail_md5hash_old(request, md5hash):
     Retrieve, update or delete a dolfin image.
     """
     try:
-        snippet = DolfinImage.objects.get(md5hash=md5hash)
+        dolfinimage = DolfinImage.objects.get(md5hash=md5hash)
     except DolfinImage.DoesNotExist:
         return HttpResponse(status=404)
 
     if request.method == 'GET':
-        serializer = DolfinImageSerializer(snippet)
+        serializer = DolfinImageSerializer(dolfinimage)
         return JsonResponse(serializer.data)
 
     elif request.method == 'PUT':
         data = JSONParser().parse(request)
-        serializer = DolfinImageSerializer(snippet, data=data)
+        serializer = DolfinImageSerializer(dolfinimage, data=data)
         if serializer.is_valid():
             serializer.save()
             return JsonResponse(serializer.data)
         return JsonResponse(serializer.errors, status=400)
 
     elif request.method == 'DELETE':
-        snippet.delete()
+        dolfinimage.delete()
         return HttpResponse(status=204)
 
 @api_view(['GET', 'PUT', 'DELETE'])
@@ -115,48 +115,48 @@ def dolfinimage_detail(request, pk):
     Retrieve, update or delete a dolfin image.
     """
     try:
-        snippet = DolfinImage.objects.get(pk=pk)
+        dolfinimage = DolfinImage.objects.get(pk=pk)
     except DolfinImage.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        serializer = DolfinImageSerializer(snippet)
+        serializer = DolfinImageSerializer(dolfinimage)
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        serializer = DolfinImageSerializer(snippet, data=request.data)
+        serializer = DolfinImageSerializer(dolfinimage, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
-        snippet.delete()
+        dolfinimage.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-@api_view(['GET', 'PUT', 'DELETE'])
+@api_view(['GET'])
 def dolfinimage_detail_md5hash(request, md5hash):
     """
     Retrieve, update or delete a dolfin image.
     """
     try:
-        snippet = DolfinImage.objects.get(md5hash=md5hash)
+        dolfinimage = DolfinImage.objects.get(md5hash=md5hash)
     except DolfinImage.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
-        serializer = DolfinImageSerializer(snippet)
+        serializer = DolfinImageSerializer(dolfinimage)
         return Response(serializer.data)
 
     elif request.method == 'PUT':
-        serializer = DolfinImageSerializer(snippet, data=request.data)
+        serializer = DolfinImageSerializer(dolfinimage, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
-        snippet.delete()
+        dolfinimage.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 from .models import DolfinImage
@@ -169,11 +169,11 @@ from rest_framework import status
 
 class DolfinImageList(APIView):
     """
-    List all snippets, or create a new snippet.
+    List all dolfinimages, or create a new dolfinimage.
     """
     def get(self, request, format=None):
-        snippets = DolfinImage.objects.all()
-        serializer = DolfinImageSerializer(snippets, many=True)
+        dolfinimages = DolfinImage.objects.all()
+        serializer = DolfinImageSerializer(dolfinimages, many=True)
         return Response(serializer.data)
 
     def post(self, request, format=None):
@@ -186,7 +186,7 @@ class DolfinImageList(APIView):
 
 class DolfinImageDetail(APIView):
     """
-    Retrieve, update or delete a snippet instance.
+    Retrieve, update or delete a dolfinimage instance.
     """
     def get_object(self, pk):
         try:
@@ -195,19 +195,19 @@ class DolfinImageDetail(APIView):
             raise Http404
 
     def get(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        serializer = DolfinImageSerializer(snippet)
+        dolfinimage = self.get_object(pk)
+        serializer = DolfinImageSerializer(dolfinimage)
         return Response(serializer.data)
 
     def put(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        serializer = DolfinImageSerializer(snippet, data=request.data)
+        dolfinimage = self.get_object(pk)
+        serializer = DolfinImageSerializer(dolfinimage, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk, format=None):
-        snippet = self.get_object(pk)
-        snippet.delete()
+        dolfinimage = self.get_object(pk)
+        dolfinimage.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
