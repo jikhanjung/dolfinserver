@@ -135,12 +135,17 @@ def dolfinimage_detail(request, pk):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 @api_view(['GET'])
-def dolfinimage_detail_md5hash(request, md5hash):
+def dolfinimage_detail_md5hash(request, md5hash,filename):
     """
     Retrieve, update or delete a dolfin image.
     """
     try:
-        dolfinimage = DolfinImage.objects.get(md5hash=md5hash)
+        dolfinimage = DolfinImage.objects.filter(md5hash=md5hash).filter(filename=filename)
+        if len( dolfinimage ) > 0:
+            dolfinimage = dolfinimage[0]
+            #print(dolfinimage)
+        else:
+            return Response(status=status.HTTP_404_NOT_FOUND)
     except DolfinImage.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -178,7 +183,7 @@ class DolfinImageList(APIView):
 
     def post(self, request, format=None):
         serializer = DolfinImageSerializer(data=request.data)
-        print(request.data)
+        #print(request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)

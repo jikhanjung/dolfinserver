@@ -3,16 +3,16 @@ from django.contrib.auth.models import AbstractUser
 
 def upload_path(instance, filename): 
     # return f'posts/{instance.content}/{filename}'
-    return '{:4d}/{:02d}/{:02d}/{}'.format(instance.exifdate.year, instance.exifdate.month, instance.exifdate.day,filename)
+    return '{:4d}/{:02d}/{:02d}/{}'.format(instance.exifdatetime.year, instance.exifdatetime.month, instance.exifdatetime.day,filename)
 
 # Create your models here.
 class DolfinImage(models.Model):
-    ipaddress = models.CharField(max_length=100, blank=True, default='')  #request.META.get('HTTP_X_REAL_IP')
-    user = models.CharField(max_length=100, blank=True, default='')
-    filepath = models.CharField(max_length=200, blank=True, default='')
+    #ipaddress = models.CharField(max_length=100, blank=True, default='')  #request.META.get('HTTP_X_REAL_IP')
+    #user = models.CharField(max_length=100, blank=True, default='')
+    #filepath = models.CharField(max_length=200, blank=True, default='')
     filename = models.CharField(max_length=100, blank=True, default='')
     md5hash = models.CharField(max_length=200, blank=True, default='')
-    exifdate = models.DateField(blank=True)
+    exifdatetime = models.DateTimeField(blank=True)
     #imagefile = models.ImageField(upload_to ='%Y/%m/%d/')
     imagefile = models.ImageField(upload_to=upload_path)
 

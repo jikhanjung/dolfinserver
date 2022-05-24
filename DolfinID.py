@@ -21,6 +21,7 @@ from PIL.ExifTags import TAGS
 #import imagesize
 from datetime import datetime
 import time
+import io
 
 PROGRAM_NAME = "DolfinID"
 PROGRAM_VERSION = "0.0.1"
@@ -34,7 +35,7 @@ class DolfinImageFile(Model):
     md5hash = CharField()
     uploaded = BooleanField()
     size = IntegerField()
-    exifdate = DateField()
+    exifdatetime = DateTimeField()
     file_created = DateTimeField()
     file_modified = DateTimeField()
     parent = ForeignKeyField('self', backref='children', null=True)
@@ -59,8 +60,8 @@ class PreferencesDialog(QDialog):
         #self.lbl_main_view.setMinimumSize(400, 300)
 
         self.parent = parent
-        self.lblDolfinIDPrefix = QLabel()
-        self.edtDolfinIDPrefix = QLineEdit()
+        self.lblServerAddress = QLabel()
+        self.edtServerAddress = QLineEdit()
         self.lblDataFolder = QLabel()
         self.edtDataFolder = QLineEdit()
 
@@ -78,9 +79,9 @@ class PreferencesDialog(QDialog):
 
 
         self.layout = QVBoxLayout()
-        #self.layout1 = QHBoxLayout()
-        #self.layout1.addWidget(self.lblDolfinIDPrefix)
-        #self.layout1.addWidget(self.edtDolfinIDPrefix)
+        self.layout1 = QHBoxLayout()
+        self.layout1.addWidget(self.lblServerAddress)
+        self.layout1.addWidget(self.edtServerAddress)
         self.layout2 = QHBoxLayout()
         self.layout2.addWidget(self.lblDataFolder)
         self.layout2.addWidget(self.edtDataFolder)
@@ -88,29 +89,30 @@ class PreferencesDialog(QDialog):
         self.layout3 = QHBoxLayout()
         self.layout3.addWidget(self.btnOkay)
         self.layout3.addWidget(self.btnCancel)
-        #self.layout.addLayout(self.layout1)
+        self.layout.addLayout(self.layout1)
         self.layout.addLayout(self.layout2)
         self.layout.addLayout(self.layout3)
         self.setLayout(self.layout)
-        #self.dolfinid_prefix = ''
+        self.server_address = ''
         self.data_folder = ''
-        print("pref dlg data_folder:", self.data_folder)
+        #print("pref dlg data_folder:", self.data_folder)
         self.read_settings()
-        print("pref dlg data_folder:", self.data_folder)
-        self.lblDolfinIDPrefix.setText("Dolfin ID Prefix")
+        #print("pref dlg data_folder:", self.data_folder)
+        self.lblServerAddress.setText("Dolfin ID Prefix")
         self.lblDataFolder.setText("Data Folder")
-        self.edtDolfinIDPrefix.setText("")
+        self.edtServerAddress.setText("")
         self.edtDataFolder.setText(str(self.data_folder.resolve()))
 
     def write_settings(self):
-        #self.parent.dolfinid_prefix = self.edtDolfinIDPrefix.text()
+        self.parent.server_address = self.edtServerAddress.text()
         self.parent.data_folder = Path(self.edtDataFolder.text())
         #print( self.parent.dolfinid_prefix, self.parent.data_folder)
 
     def read_settings(self):
-        #self.dolfinid_prefix = self.parent.dolfinid_prefix
+        self.server_address = self.parent.server_address
         self.data_folder = self.parent.data_folder.resolve()
         print("pref dlg data folder:", self.data_folder)
+        print("pref dlg server address:", self.server_address)
 
     def Okay(self):
         self.write_settings()
@@ -125,6 +127,32 @@ class PreferencesDialog(QDialog):
             self.data_folder = Path(folder).resolve()
             self.edtDataFolder.setText(folder)
 
+class ProgressDialog(QDialog):
+    def __init__(self):
+        super().__init__()
+        #self.setupUi(self)
+        self.lbl_text = QLabel(self)
+        self.lbl_text.setGeometry(100, 50, 300, 20)
+        #self.pb_progress = QProgressBar(self)
+        self.pb_progress = QProgressBar(self)
+        self.pb_progress.setGeometry(50, 120, 320, 40)
+        self.pb_progress.setValue(0)
+        self.setGeometry(600, 400, 400, 210)
+
+    def set_progress_text(self,text_format):
+        self.text_format = text_format
+
+    def set_max_value(self,max_value):
+        self.max_value = max_value
+
+    def set_curr_value(self,curr_value):
+        self.curr_value = curr_value
+        self.pb_progress.setValue(int((self.curr_value/float(self.max_value))*100))
+        self.lbl_text.setText(self.text_format.format(self.curr_value, self.max_value))
+        #self.lbl_text.setText(label_text)
+        self.update()
+        QApplication.processEvents()
+    
 
 
 form_class = uic.loadUiType("DolfinID.ui")[0]
@@ -165,6 +193,7 @@ class DolfinIDWindow(QMainWindow, form_class):
         self.btnReadTree.clicked.connect(self.btnReadTreeClicked)
         self.btnLoadTree.clicked.connect(self.btnLoadTreeClicked)
         self.btnSendImage.clicked.connect(self.btnSendImageClicked)
+        self.btnSendAll.clicked.connect(self.btnSendAllClicked)
         #self.data_folder = Path('.')
         self.dir_model = QStandardItemModel()
         self.file_model = QStandardItemModel()
@@ -172,7 +201,7 @@ class DolfinIDWindow(QMainWindow, form_class):
         self.treeView.setModel(self.dir_model)
         self.proxy_model = QSortFilterProxyModel()
         self.proxy_model.setSourceModel(self.file_model)
-        self.listView.setModel(self.proxy_model)
+        #self.listView.setModel(self.proxy_model)
         self.tableView.setModel(self.proxy_model)
         self.tableView.setSelectionBehavior(QTableView.SelectRows)
         self.tableView.hideColumn(1)
@@ -189,10 +218,10 @@ class DolfinIDWindow(QMainWindow, form_class):
         #print("__init__ dir model row count:", self.dir_model.rowCount())
         self.dirSelModel = self.treeView.selectionModel()
         self.dirSelModel.selectionChanged.connect(self.dirSelectionChanged)
-        self.fileSelModel = self.listView.selectionModel()
+        #self.fileSelModel = self.listView.selectionModel()
+        #self.fileSelModel.selectionChanged.connect(self.fileSelectionChanged)
+        self.fileSelModel = self.tableView.selectionModel()
         self.fileSelModel.selectionChanged.connect(self.fileSelectionChanged)
-        self.fileSelModel2 = self.tableView.selectionModel()
-        self.fileSelModel2.selectionChanged.connect(self.fileSelectionChanged)
 
         self.dir_record_tree = []
         self.file_record_hash = {}
@@ -287,7 +316,7 @@ class DolfinIDWindow(QMainWindow, form_class):
         index = self.tableView.currentIndex()
         print(index)
 
-        selected_index_list = self.fileSelModel2.selection().indexes()
+        selected_index_list = self.fileSelModel.selection().indexes()
         if len(selected_index_list) == 0:
             return
         print("selected_index",selected_index_list)
@@ -308,21 +337,28 @@ class DolfinIDWindow(QMainWindow, form_class):
         filename = item_text_list[0]
         return filepath, filename
 
-    def upload_file(self):
+    def upload_file(self,fullpath):
 
-        filepath, filename = self.get_selected_file()
-        #item_text_list.reverse()
-        fullpath = Path(filepath,filename).resolve()
-        #path = 
-        print(fullpath)
-        str_fullpath = str(fullpath.as_posix())
         record = None
-        print(str_fullpath)
+        print(fullpath)
 
-        if str_fullpath in self.file_record_hash.keys():
-            record = self.file_record_hash[str_fullpath]
+        if fullpath in self.file_record_hash.keys():
+            record = self.file_record_hash[fullpath]
+        else:
+            record = DolfinImageFile.get_or_none(path=fullpath)
+            if record is None:
+                return
 
-        data_hash = {'title':'test','filepath':record.path,'filename':record.name,'md5hash':record.md5hash,'exifdate':record.exifdate}
+        get_url = "http://127.0.0.1:8000/dolfinrest/dolfinimage_detail_md5hash/{}/{}/".format(record.md5hash,record.name)
+        print(get_url)
+        response = requests.get(get_url)
+        print(response.status_code)
+        if int( response.status_code / 100 ) == 2:
+            print('retrieve success. returning.')
+            return
+
+
+        data_hash = {'filename':record.name,'md5hash':record.md5hash,'exifdatetime':record.exifdatetime}
 
         fd = open(fullpath, 'rb')
         file_hash = {'imagefile': fd}   
@@ -359,8 +395,30 @@ class DolfinIDWindow(QMainWindow, form_class):
         QApplication.restoreOverrideCursor()
 
     def btnSendImageClicked(self):
+
         QApplication.setOverrideCursor(Qt.WaitCursor)
-        self.upload_file()
+
+        filepath, filename = self.get_selected_file()
+        fullpath = Path(filepath,filename).resolve()        
+        str_fullpath = str(fullpath.as_posix())
+        self.upload_file(str_fullpath)
+
+        QApplication.restoreOverrideCursor()
+
+    def btnSendAllClicked(self):
+        print("send all")
+        #return
+
+        QApplication.setOverrideCursor(Qt.WaitCursor)
+
+        record_list = DolfinImageFile.filter(type='file',uploaded=False)
+        print("record count:",len(record_list))
+        total_count = len(record_list)
+        #return
+        for index, record in enumerate(record_list):
+            fullpath = record.path
+            self.upload_file(fullpath)
+
         QApplication.restoreOverrideCursor()
 
 
@@ -401,7 +459,7 @@ class DolfinIDWindow(QMainWindow, form_class):
                         rec_image.size = f['size']
                         rec_image.md5hash = f['md5hash']
                         rec_image.uploaded = False
-                        rec_image.exifdate = f['exifdate']
+                        rec_image.exifdatetime = f['exifdatetime']
                         rec_image.parent=parent
                         rec_image.save()
                         if f['type'] == 'dir':
@@ -426,39 +484,6 @@ class DolfinIDWindow(QMainWindow, form_class):
         print(index)
         self.treeView.setCurrentIndex(index)
         #self.stackedWidget.setCurrentIndex(CLOSEUP_VIEW)
-
-    def updateRootdir(self,rootdir):
-        for (root,dirs,files) in os.walk(rootdir, topdown=True):
-            dir_path = Path(root).resolve()
-            stat_result = os.stat(dir_path)
-            rec_dir = DolfinImageFile.get_or_none( path=str(dir_path) )
-            if rec_dir and datetime.fromtimestamp(rec_dir.file_modified) == rec_dir.file_modified: #디렉토리 변경 시간이 기록된 것과 같으면
-                continue
-
-            self.dir_list.append([str(dir_path),'dir',datetime.fromtimestamp(stat_result.st_ctime),datetime.fromtimestamp(stat_result.st_mtime),jpg_count])
-            #print(root,dirs,len(files),files[:10])
-            #print(dirs)
-            #for dir in dirs:
-            #print(files)
-            for file in files:
-                file_path = Path(root,file).resolve()
-                if file_path.suffix.upper() != '.JPG':
-                    #print(file_path, file_path.suffix)
-                    continue
-                jpg_count += 1
-                stat_result = os.stat(file_path)
-                #print(file_path.suffix)#if file_path.suffix != 
-                #print(file_path, rootdir)
-                #rel_path = file_path.relative_to(Path(rootdir).resolve())
-                self.file_list.append([str(file_path),'file',datetime.fromtimestamp(stat_result.st_ctime),datetime.fromtimestamp(stat_result.st_mtime),stat_result.st_size])
-
-            if jpg_count + len(dirs) > 0:
-                #print(dir_path, rootdir)
-                #rel_path = dir_path.relative_to(Path(rootdir).resolve())
-                #if str(rel_path) == ".":
-                #    rel_path = Path(rootdir).resolve()
-                pass
-    
     
     def setRootdir(self,rootdir):
         #rootdir = 
@@ -482,20 +507,22 @@ class DolfinIDWindow(QMainWindow, form_class):
                 #stat_result = os.stat(filepath)
 
                 #exif_info = self.get_exif_info(filepath)
-                fileinfo = self.get_file_info(filepath)
-                #print(file_path.suffix)#if file_path.suffix != 
-                #print(file_path, rootdir)
-                #rel_path = file_path.relative_to(Path(rootdir).resolve())
-                #self.file_list.append([str(filepath),'file',datetime.fromtimestamp(stat_result.st_ctime),datetime.fromtimestamp(stat_result.st_mtime),stat_result.st_size, exif_info['date']])
-                fileinfo_hash = {   'path': str(filepath), 
-                                    'type': 'file', 
-                                    'file_created':datetime.fromtimestamp(fileinfo['ctime']), 
-                                    'file_modified':datetime.fromtimestamp(fileinfo['mtime']), 
-                                    'size': fileinfo['size'],
-                                    'md5hash': fileinfo['md5hash'],
-                                    'exifdate': fileinfo['exifdate'],
-                                }           
-                self.file_list.append( fileinfo_hash )
+                image_record = DolfinImageFile.get_or_none( path=str(filepath.as_posix()) )
+                if image_record is None:
+                    fileinfo = self.get_file_info(filepath)
+                    #print(file_path.suffix)#if file_path.suffix != 
+                    #print(file_path, rootdir)
+                    #rel_path = file_path.relative_to(Path(rootdir).resolve())
+                    #self.file_list.append([str(filepath),'file',datetime.fromtimestamp(stat_result.st_ctime),datetime.fromtimestamp(stat_result.st_mtime),stat_result.st_size, exif_info['date']])
+                    fileinfo_hash = {   'path': str(filepath), 
+                                        'type': 'file', 
+                                        'file_created':datetime.fromtimestamp(fileinfo['ctime']), 
+                                        'file_modified':datetime.fromtimestamp(fileinfo['mtime']), 
+                                        'size': fileinfo['size'],
+                                        'md5hash': fileinfo['md5hash'],
+                                        'exifdatetime': fileinfo['exifdatetime'],
+                                    }           
+                    self.file_list.append( fileinfo_hash )
 
             if jpg_count + len(dirs) > 0:
                 dirpath = Path(root).resolve()
@@ -505,15 +532,18 @@ class DolfinIDWindow(QMainWindow, form_class):
                 #rel_path = dir_path.relative_to(Path(rootdir).resolve())
                 #if str(rel_path) == ".":
                 #    rel_path = Path(rootdir).resolve()
-                dirinfo_hash = {   'path': str(dirpath), 
-                                    'type': 'dir', 
-                                    'file_created':datetime.fromtimestamp(dirinfo['ctime']), 
-                                    'file_modified':datetime.fromtimestamp(dirinfo['mtime']), 
-                                    'size': jpg_count,
-                                    'md5hash': '',
-                                    'exifdate': datetime.fromtimestamp(dirinfo['ctime']).strftime("%Y-%m-%d"),
-                                }           
-                self.dir_list.append( dirinfo_hash )
+                dir_record = DolfinImageFile.get_or_none( path=str(dirpath.as_posix()) )
+                if dir_record is None:
+
+                    dirinfo_hash = {   'path': str(dirpath), 
+                                        'type': 'dir', 
+                                        'file_created':datetime.fromtimestamp(dirinfo['ctime']), 
+                                        'file_modified':datetime.fromtimestamp(dirinfo['mtime']), 
+                                        'size': jpg_count,
+                                        'md5hash': '',
+                                        'exifdatetime': datetime.fromtimestamp(dirinfo['ctime']),
+                                    }           
+                    self.dir_list.append( dirinfo_hash )
 
                 #self.dir_list.append([str(dir_path),'dir',datetime.fromtimestamp(stat_result.st_ctime),datetime.fromtimestamp(stat_result.st_mtime),jpg_count,datetime.fromtimestamp(stat_result.st_ctime).strftime("%Y-%m-%d")])
 
@@ -529,7 +559,7 @@ class DolfinIDWindow(QMainWindow, form_class):
         settings = QSettings(QSettings.IniFormat, QSettings.UserScope,"DiploSoft", "DolfinID")
 
         settings.beginGroup("Defaults")
-        #settings.setValue("DolfinID prefix", self.dolfinid_prefix)
+        settings.setValue("Server Address", self.server_address)
         settings.setValue("Data Folder", str(self.data_folder))
         settings.endGroup()
 
@@ -538,7 +568,7 @@ class DolfinIDWindow(QMainWindow, form_class):
         settings = QSettings(QSettings.IniFormat, QSettings.UserScope,"DiploSoft", "DolfinID")
 
         settings.beginGroup("Defaults")
-        #self.dolfinid_prefix = settings.value("DolfinID prefix", "JTA")
+        self.server_address = settings.value("Server Address", "")
         self.data_folder = Path(settings.value("Data Folder", "./"))
         self.working_folder = self.data_folder
         settings.endGroup()
@@ -566,34 +596,38 @@ class DolfinIDWindow(QMainWindow, form_class):
         # 나중에 md5 와 exif 를 합칠 것.
 
         ''' md5 hash value '''
-        file_info['md5hash'] = self.get_hash_info(fullpath)
+        file_info['md5hash'], image_data = self.get_md5hash_info(fullpath)
 
         ''' exif info '''
-        exif_info = self.get_exif_info(fullpath)
-        file_info['exifdate'] = exif_info['date']
+        exif_info = self.get_exif_info(fullpath, image_data)
+        file_info['exifdatetime'] = exif_info['datetime']
         file_info['latitude'] = exif_info['latitude']
         file_info['longitude'] = exif_info['longitude']
         file_info['map_datum'] = exif_info['map_datum']
 
         return file_info
 
-    def get_hash_info(self,path, blocksize=65536):
-        afile = open(path, 'rb')
+    def get_md5hash_info(self,filepath):
+        afile = open(filepath, 'rb')
         hasher = hashlib.md5()
-        buf = afile.read(blocksize)
-        while len(buf) > 0:
-            hasher.update(buf)
-            buf = afile.read(blocksize)
+        image_data = afile.read()
+        hasher.update(image_data)
         afile.close()
-        return hasher.hexdigest()
+        md5hash = hasher.hexdigest()
+        return md5hash, image_data
 
-    def get_exif_info(self, filename):
+    def get_exif_info(self, fullpath, image_data=None):
         image_info = {'date':'','time':'','latitude':'','longitude':'','map_datum':''}
-        i = Image.open(filename)
+        img = None
+        if image_data:
+            #img = Image.open()
+            img = Image.open(io.BytesIO(image_data))
+        else:
+            img = Image.open(fullpath)
         ret = {}
         #print(filename)
         try:
-            info = i._getexif()
+            info = img._getexif()
             for tag, value in info.items():
                 decoded=TAGS.get(tag, tag)
                 ret[decoded]= value
