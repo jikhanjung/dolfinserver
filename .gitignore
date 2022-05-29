@@ -5,3 +5,4 @@ dolfinrest/migrations/*
 uploads/*
 scripts/json/*
 log.txt
+dolfinid.db

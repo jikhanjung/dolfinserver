@@ -349,7 +349,7 @@ class DolfinIDWindow(QMainWindow, form_class):
             if record is None:
                 return
 
-        hostname = '192.168.55.80'
+        hostname = '192.168.55.223'
 
         get_url = "http://{}:8000/dolfinrest/dolfinimage_detail_md5hash/{}/{}/".format(hostname,record.md5hash,record.name)
         print(get_url)
