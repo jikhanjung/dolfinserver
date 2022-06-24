@@ -12,7 +12,7 @@ class DolfinImage(models.Model):
     #filepath = models.CharField(max_length=200, blank=True, default='')
     filename = models.CharField(max_length=100, blank=True, default='')
     md5hash = models.CharField(max_length=200, blank=True, default='')
-    exifdatetime = models.DateTimeField(blank=True)
+    exifdatetime = models.DateTimeField(blank=True,null=True)
     #imagefile = models.ImageField(upload_to ='%Y/%m/%d/')
     imagefile = models.ImageField(upload_to=upload_path)
 
