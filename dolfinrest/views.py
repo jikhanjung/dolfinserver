@@ -16,6 +16,13 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+from .models import DolfinImage
+from .serializers import DolfinImageSerializer
+from django.http import Http404
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
 
 @api_view(['GET', 'POST'])
 def dolfinimage_list(request):
@@ -163,14 +170,6 @@ def dolfinimage_detail_md5hash(request, md5hash,filename):
     elif request.method == 'DELETE':
         dolfinimage.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-from .models import DolfinImage
-from .serializers import DolfinImageSerializer
-from django.http import Http404
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
 
 class DolfinImageList(APIView):
     """

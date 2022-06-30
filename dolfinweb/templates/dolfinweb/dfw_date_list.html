@@ -1,0 +1,49 @@
+{% extends "dfwbase.html" %}
+{% load verbose_names %}
+{% block content %}
+<h4 class="bd-title p-2 bg-secondary text-light">관찰일</h4>
+<table class="table table-striped table-sm">
+    <thead>
+        <tr><td colspan="2">
+            <div class="row">
+                <div class="col">
+                    {{ page_obj.start_index }}-{{ page_obj.end_index }} out of {{ page_obj.paginator.count }} 
+                </div>
+                <div class="col text-end">
+                </div>
+            </div>
+        </td></tr>
+        <tr>
+            <tr>
+                <th>날짜</th>
+                <th>사진</th>
+            </tr>
+    </thead>
+    <tbody>
+    {% if date_list %}
+        {% for obs_date in page_obj %}
+        <tr>
+            <td>{{obs_date.observation_date}}</td>
+            <td>{{obs_date.image_count}}</td>
+        </tr>
+        {% endfor %}
+    {% else %}
+        <tr><td colspan="2">
+            <div>No observation dates are available.</div>
+        </td></tr>
+    {% endif %}
+
+    </tbody>
+    <tfoot>
+        <tr><td colspan="2">
+            <div class="container">
+                <div class="row">
+                    <div class="col">{% include "dfwpaginator.html" %}</div>
+                    <div class="col text-end">
+                    </div>
+                </div>
+            </div>
+        </td></tr>
+    </tfoot>
+</table>
+{% endblock %}

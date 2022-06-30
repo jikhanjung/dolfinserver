@@ -26,6 +26,8 @@ from dolfinrest import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('dolfinrest/', include('dolfinrest.urls')),
+    path('dolfinweb/', include('dolfinweb.urls')),
+
 ]
 
 if settings.DEBUG: 
