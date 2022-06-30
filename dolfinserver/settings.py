@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'dolfinrest',
     'dolfinweb',
+    'django_bootstrap5',
 ]
 
 MIDDLEWARE = [

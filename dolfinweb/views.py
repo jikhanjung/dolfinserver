@@ -36,9 +36,15 @@ def check_admin(user_obj):
     else:
         return False
 
-def dfw_image_list(request):
+def dfw_image_list(request, obs_date):
+    user_obj = get_user_obj( request )
 
-    return
+    image_list = DolfinImage.objects.filter(exifdatetime__date=obs_date)
+    paginator = Paginator(image_list, ITEMS_PER_PAGE) # Show ITEMS_PER_PAGE contacts per page.
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'dolfinweb/dfw_image_list.html', {'image_list': image_list, 'page_obj': page_obj, 'user_obj': user_obj, })
 
 def dfw_date_list(request):
     user_obj = get_user_obj( request )
@@ -50,4 +56,11 @@ def dfw_date_list(request):
     paginator = Paginator(date_list, ITEMS_PER_PAGE) # Show ITEMS_PER_PAGE contacts per page.
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'dfw/dfw_date_list.html', {'date_list': date_list, 'page_obj': page_obj, 'user_obj': user_obj, 'selected_date':selected_date})
+    return render(request, 'dolfinweb/dfw_date_list.html', {'date_list': date_list, 'page_obj': page_obj, 'user_obj': user_obj, 'selected_date':selected_date})
+
+def dfw_image_view(request, pk):
+    user_obj = get_user_obj( request )
+
+    image = DolfinImage.objects.get(pk=pk)
+
+    return render(request, 'dolfinweb/dfw_image_view.html', {'image': image, 'user_obj': user_obj, })
