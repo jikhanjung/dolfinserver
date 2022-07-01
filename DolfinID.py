@@ -337,17 +337,11 @@ class DolfinIDWindow(QMainWindow, form_class):
         filename = item_text_list[0]
         return filepath, filename
 
-    def upload_file(self,fullpath):
+    def upload_file(self,record):
+        fullpath = record.path
 
-        record = None
+        #record = None
         print(fullpath)
-
-        if fullpath in self.file_record_hash.keys():
-            record = self.file_record_hash[fullpath]
-        else:
-            record = DolfinImageFile.get_or_none(path=fullpath)
-            if record is None:
-                return
 
         hostname = '192.168.55.223'
         hostname = '127.0.0.1'
@@ -357,6 +351,8 @@ class DolfinIDWindow(QMainWindow, form_class):
         response = requests.get(get_url)
         print(response.status_code)
         if int( response.status_code / 100 ) == 2:
+            record.uploaded = True
+            record.save()
             print('retrieve success. returning.')
             return
 
@@ -419,8 +415,8 @@ class DolfinIDWindow(QMainWindow, form_class):
         total_count = len(record_list)
         #return
         for index, record in enumerate(record_list):
-            fullpath = record.path
-            self.upload_file(fullpath)
+            #fullpath = record.path
+            self.upload_file(record)
 
         QApplication.restoreOverrideCursor()
 
