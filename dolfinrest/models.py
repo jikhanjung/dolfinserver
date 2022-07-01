@@ -8,8 +8,10 @@ class DolfinDate(models.Model):
 
 def upload_path(instance, filename): 
     # return f'posts/{instance.content}/{filename}'
-    dolfin_date = instance.exifdatetime.date
-    dolfin_date = DolfinDate.objects.get_or_create(observation_date=instance.exifdatetime.date)
+    dolfin_date = instance.exifdatetime.date() #.strftime('%Y-%m-%d')
+
+    print(dolfin_date)
+    dolfin_date, created = DolfinDate.objects.get_or_create(observation_date=dolfin_date)
     dolfin_date.image_count += 1
     dolfin_date.save()
     return '{:4d}/{:02d}/{:02d}/{}'.format(instance.exifdatetime.year, instance.exifdatetime.month, instance.exifdatetime.day,filename)
