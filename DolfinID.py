@@ -339,9 +339,7 @@ class DolfinIDWindow(QMainWindow, form_class):
 
     def upload_file(self,record):
         fullpath = record.path
-
-        #record = None
-        print(fullpath)
+        #print(fullpath)
 
         hostname = '192.168.55.223'
         hostname = '127.0.0.1'
@@ -373,8 +371,8 @@ class DolfinIDWindow(QMainWindow, form_class):
         #log = open("log.txt","w")
         #log.write(str(response.json()))
         #log.close()
-        print(response)
-        print(response.json())
+        #print(response)
+        #print(response.json())
         record.uploaded = True
         record.save()
         
