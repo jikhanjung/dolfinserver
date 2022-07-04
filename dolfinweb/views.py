@@ -44,7 +44,7 @@ def dfw_image_list(request, obs_date):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'dolfinweb/dfw_image_list.html', {'image_list': image_list, 'page_obj': page_obj, 'user_obj': user_obj, })
+    return render(request, 'dolfinweb/dfw_image_list.html', {'image_list': image_list, 'page_obj': page_obj, 'user_obj': user_obj, 'date':obs_date })
 
 def dfw_date_list(request):
     user_obj = get_user_obj( request )
