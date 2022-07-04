@@ -371,7 +371,7 @@ class DolfinIDWindow(QMainWindow, form_class):
         #log = open("log.txt","w")
         #log.write(str(response.json()))
         #log.close()
-        #print(response)
+        print(response)
         #print(response.json())
         record.uploaded = True
         record.save()
@@ -398,7 +398,8 @@ class DolfinIDWindow(QMainWindow, form_class):
         filepath, filename = self.get_selected_file()
         fullpath = Path(filepath,filename).resolve()        
         str_fullpath = str(fullpath.as_posix())
-        self.upload_file(str_fullpath)
+        record = DolfinImageFile.get(type='file',path=str_fullpath)
+        self.upload_file(record)
 
         QApplication.restoreOverrideCursor()
 

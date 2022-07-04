@@ -184,7 +184,8 @@ class DolfinImageList(APIView):
         serializer = DolfinImageSerializer(data=request.data)
         #print(request.data)
         if serializer.is_valid():
-            serializer.save()
+            image_instance = serializer.save()
+            image_instance.generate_thumbnail()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)        
 

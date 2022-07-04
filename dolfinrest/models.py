@@ -1,5 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+import os
+from dolfinserver.settings import MEDIA_ROOT
+from PIL import Image
 
 class DolfinDate(models.Model):
     observation_date = models.DateField()
@@ -10,7 +13,7 @@ def upload_path(instance, filename):
     # return f'posts/{instance.content}/{filename}'
     dolfin_date = instance.exifdatetime.date() #.strftime('%Y-%m-%d')
 
-    print(dolfin_date)
+    #print(dolfin_date)
     dolfin_date, created = DolfinDate.objects.get_or_create(observation_date=dolfin_date)
     dolfin_date.image_count += 1
     dolfin_date.save()
@@ -26,6 +29,39 @@ class DolfinImage(models.Model):
     exifdatetime = models.DateTimeField(blank=True,null=True)
     #imagefile = models.ImageField(upload_to ='%Y/%m/%d/')
     imagefile = models.ImageField(upload_to=upload_path)
+
+    class Meta:
+        ordering = ["exifdatetime"]
+
+    @property
+    def get_thumbnail_url(self):
+        image_url = self.imagefile.url
+        #print(image.filename, image.imagefile, image_path)
+        head, tail = os.path.split(image_url)
+        new_head = os.path.join(head,'thumbnail')
+        #if not os.path.isdir(new_head):
+        #    os.mkdir(new_head)
+        thumbnail_path = os.path.join(new_head,tail)
+        return thumbnail_path
+
+    def generate_thumbnail(self):
+        #print("generate thumbnail")
+        image_path = os.path.join( MEDIA_ROOT , str(self.imagefile ))
+        #print(image.filename, image.imagefile, image_path)
+        head, tail = os.path.split(image_path)
+        new_head = os.path.join(head,'thumbnail')
+        if not os.path.isdir(new_head):
+            os.mkdir(new_head)
+        thumbnail_path = os.path.join(new_head,tail)
+        #print(self.filename, image_path, thumbnail_path)
+        if not os.path.isfile(thumbnail_path):
+            img = Image.open(image_path)
+            w, h = img.size
+            new_w = 400
+            new_h = int(h * ( 400 / w ))
+            res_img = img.resize((new_w,new_h))
+            res_img.save(thumbnail_path)
+            #generate thumbnail        
 
 class DolfinUser(AbstractUser):
     firstname = models.CharField( max_length=50, blank=True, null=True,verbose_name=u'이름')

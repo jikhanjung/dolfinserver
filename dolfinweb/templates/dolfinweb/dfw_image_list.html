@@ -23,7 +23,7 @@
     <div class="row">
         {% for image in page_obj %}
             <div class="col">
-                <a href="{% url 'dfw_image_view' image.id %}"><img width="200" src="{{image.imagefile.url}}"></a><br/>
+                <a href="{% url 'dfw_image_view' image.id %}"><img width="200" src="{{image.get_thumbnail_url}}"></a><br/>
             {{image.exifdatetime}}</div>
         {% endfor %}
     </div>
