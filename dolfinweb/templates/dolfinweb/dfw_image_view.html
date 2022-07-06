@@ -40,14 +40,16 @@
         canvas.addEventListener("mousedown", handleMouseDown, false); // click and hold to pan
         canvas.addEventListener("mousemove", handleMouseMove, false);
         canvas.addEventListener("mouseup", handleMouseUp, false);
-        //canvas.addEventListener("mousewheel", handleMouseWheel, false); // mousewheel duplicates dblclick function
+        canvas.addEventListener("mousewheel", handleMouseWheel, false); // mousewheel duplicates dblclick function
+
+        canvas.addEventListener('contextmenu', (event) => {event.preventDefault();});
         //canvas.addEventListener("DOMMouseScroll", handleMouseWheel, false); // for Firefox
     }
     function draw() {
         context.fillStyle = "grey";
         context.fillRect(0,0, widthCanvas,heightCanvas);
 
-        context.drawImage(img,lastupX+deltaX,lastupY+deltaY,canvas.width,canvas.height);
+        context.drawImage(img,lastupX+deltaX,lastupY+deltaY,canvas.width * scale,canvas.height*scale);
     }
     
     var mouseDown = false;
@@ -55,29 +57,44 @@
     var downY = 0;
 
     function handleMouseDown(event) {
-        mouseDown = true;
-        downX = event.clientX - this.offsetLeft - this.clientLeft + this.scrollLeft;
-        downY = event.clientY - this.offsetTop - this.clientTop + this.scrollTop;
-
+        //console.log("button:", event.button);
+        if(event.button == 2) {
+            mouseDown = true;
+            //downX = event.clientX - this.offsetLeft - this.clientLeft + this.scrollLeft;
+            //downY = event.clientY - this.offsetTop - this.clientTop + this.scrollTop;
+            let box = this.getBoundingClientRect();
+            downX = Math.round(event.clientX-box.left);
+            downY = Math.round(event.clientY-box.top);
+            //console.log("down:",downX,downY);
+        }
     }
 
     var lastupX = 0;
     var lastupY = 0;
     var deltaX = 0;
     var deltaY = 0;
+    var scale=1;
     function handleMouseUp(event) {
-        mouseDown = false;
-        lastupX += deltaX;
-        lastupY += deltaY;
-        deltaX = 0;
-        deltaY = 0;
+        //if(event.button == 2) { console.log("right button"); event.preventDefault(); }
+        if(event.button == 2) {
+            mouseDown = false;
+            lastupX += deltaX;
+            lastupY += deltaY;
+            deltaX = 0;
+            deltaY = 0;
+        }
     }
+    
     function handleMouseMove(event) {
 
-        var X = event.clientX - this.offsetLeft - this.clientLeft + this.scrollLeft;
-        var Y = event.clientY - this.offsetTop - this.clientTop + this.scrollTop;
+        //var X = event.clientX - this.offsetLeft - this.clientLeft + this.scrollLeft;
+        //var Y = event.clientY - this.offsetTop - this.clientTop + this.scrollTop;
+        let box = this.getBoundingClientRect();
+        var X = Math.round(event.clientX-box.left);
+        var Y = Math.round(event.clientY-box.top);
 
-        //console.log(X,Y)
+        //console.log(X,event.clientX,box.left,box.top,this.offsetLeft,this.clientLeft,this.scrollLeft,Y,event.clientY,this.offsetTop,this.clientTop,this.scrollTop,lastupX,lastupY);
+        //console.log(event.clientX,box.left,event.clientY,box.top,Math.round(event.clientX-box.left),Math.round(event.clientY-box.top));
         if (mouseDown) {
             deltaX = X - downX;
             deltaY = Y - downY;
@@ -88,6 +105,31 @@
         //console.log(xleftView,ytopView)
         draw();
     }
+
+    function handleMouseWheel(event) {
+        //event.stopPropagation();
+        event.preventDefault();
+        var scaleDelta = (event.wheelDelta < 0 || event.detail > 0) ? -0.1 : +0.1;
+        if( scale < 0.2 && scaleDelta < 0 ) return;
+        if( scale > 1 ) scaleDelta *= Math.floor(scale);
+        prev_scale = scale;
+        scale += scaleDelta;
+        scale = Math.round( scale * 10 ) / 10;
+        scale_proportion = scale/prev_scale;
+        //var X = event.clientX - this.offsetLeft - this.clientLeft + this.scrollLeft;
+        //var Y = event.clientY - this.offsetTop - this.clientTop + this.scrollTop;
+        let box = this.getBoundingClientRect();
+
+        var X = Math.round(event.clientX-box.left);
+        var Y = Math.round(event.clientY-box.top);
+        //console.log(X, Y, lastupX, lastupY, scale);
+        lastupX = X - ( X - lastupX ) * scale_proportion;
+        lastupY = Y - ( Y - lastupY ) * scale_proportion;
+        //console.log(X, Y, lastupX, lastupY, scale);
+
+        
+        draw();
+    }    
 </script>
 {% endblock %}
 
