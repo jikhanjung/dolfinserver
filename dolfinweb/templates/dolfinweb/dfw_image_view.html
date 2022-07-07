@@ -10,11 +10,6 @@
     <tr>
         <td colspan="2"><div class="text-center">
             <canvas id="canvas" width="1024" height="600"></canvas>
-            <div id="fin_list" class="container">
-                {% if image.finboxes.all %}{% for finbox in image.finboxes.all %}
-                    <div>{{finbox.coords_str|default_if_none:''}}</div>
-                {%endfor%}{%endif%}
-            </div>
         </div>
         
         </td>
@@ -22,8 +17,8 @@
     </tbody>    
 <tfoot><tr><td colspan="2"><a href="{% url 'dfw_edit_finbox' image.id %}">[Edit Fins]</a></td></tr></tfoot>
 </table>
-{% include "dolfinweb/dfw_finbox.js" %}
 <script>
+    {% include "dolfinweb/dfw_finbox.js" %}
     {% if image.finboxes.all %}
     box_list = [ 
     {%for finbox in image.finboxes.all %}

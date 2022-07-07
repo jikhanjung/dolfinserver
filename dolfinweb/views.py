@@ -83,7 +83,7 @@ def dfw_edit_finbox(request, pk):
             print(dolfinbox_formset.errors)
         return HttpResponseRedirect(reverse('dfw_image_view',args=(pk,)))
     else:
-        DolfinBoxFormSet = inlineformset_factory(DolfinImage,DolfinBox,form=DolfinBoxForm,extra=5)
+        DolfinBoxFormSet = inlineformset_factory(DolfinImage,DolfinBox,form=DolfinBoxForm,extra=0)
         dolfinbox_formset = DolfinBoxFormSet(instance=image)
          
     return render(request, 'dolfinweb/dfw_edit_finbox.html', {'image': image, 'user_obj': user_obj, 'dolfinbox_formset':dolfinbox_formset})
