@@ -29,6 +29,7 @@ class DolfinImage(models.Model):
     exifdatetime = models.DateTimeField(blank=True,null=True)
     #imagefile = models.ImageField(upload_to ='%Y/%m/%d/')
     imagefile = models.ImageField(upload_to=upload_path)
+    dirname = models.CharField(max_length=200, blank=True, default='')
 
     class Meta:
         ordering = ["exifdatetime"]
@@ -73,3 +74,10 @@ class DolfinUser(AbstractUser):
 
     def __str__(self):
         return self.username
+
+class DolfinBox(models.Model):
+#post_id = models.ForeignKey("Post", related_name="post", on_delete=models.CASCADE, db_column="post_id")    
+    dolfin_image = models.ForeignKey("DolfinImage",related_name="finboxes",on_delete=models.CASCADE)
+    coords_str = models.CharField(max_length=100,blank=True,null=True,default='')
+    boxname = models.CharField(max_length=100,blank=True,null=True,default='')
+    

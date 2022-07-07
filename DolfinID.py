@@ -10,7 +10,7 @@ from PyQt5.QtGui import QIcon, QColor, QPainter, QPen, QPixmap, QStandardItemMod
 from PyQt5.QtCore import Qt, QRect, QSortFilterProxyModel, QSettings, QEvent, QRegExp, QSize, \
                          QItemSelectionModel, QDateTime, QBuffer, QIODevice, QByteArray
 
-import os,sys
+import re,os,sys
 from pathlib import Path
 from peewee import *
 import hashlib
@@ -341,6 +341,16 @@ class DolfinIDWindow(QMainWindow, form_class):
         fullpath = record.path
         #print(fullpath)
 
+        dirname = ''
+        path_list = Path(fullpath).parts
+        for pathname in path_list:
+            find_date_in_dir = re.match("(\d{8}).*",pathname)
+            #print("pathname:",pathname,"find_date:", find_date_in_dir)
+            if find_date_in_dir:
+                dirname = find_date_in_dir.group(0)
+                break
+                #print("dirname:",dirname)
+
         hostname = '192.168.55.223'
         hostname = '127.0.0.1'
 
@@ -355,7 +365,7 @@ class DolfinIDWindow(QMainWindow, form_class):
             return
 
 
-        data_hash = {'filename':record.name,'md5hash':record.md5hash,'exifdatetime':record.exifdatetime}
+        data_hash = {'filename':record.name,'md5hash':record.md5hash,'exifdatetime':record.exifdatetime, 'dirname':dirname}
 
         fd = open(fullpath, 'rb')
         file_hash = {'imagefile': fd}   
