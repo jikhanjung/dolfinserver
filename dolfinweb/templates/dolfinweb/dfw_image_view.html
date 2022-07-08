@@ -9,7 +9,7 @@
     <tr><th>폴더이름</th><td>{{ image.dirname|default_if_none:''}}</td></tr>
     <tr>
         <td colspan="2"><div class="text-center">
-            <canvas id="canvas" width="1024" height="600"></canvas>
+            <canvas id="canvas" width="900" height="600"></canvas>
         </div>
         
         </td>
@@ -18,13 +18,13 @@
 <tfoot><tr><td colspan="2"><a href="{% url 'dfw_edit_finbox' image.id %}">[Edit Fins]</a></td></tr></tfoot>
 </table>
 <script>
-    {% include "dolfinweb/dfw_finbox.js" %}
     {% if image.finboxes.all %}
-    box_list = [ 
+    box_list_data = [ 
     {%for finbox in image.finboxes.all %}
-        [ {{finbox.coords_str}} ],
+        { coords: [ {{finbox.coords_str}} ], boxname: "{{finbox.boxname}}", boxcolor: "{{finbox.boxcolor}}",formidx: {{forloop.counter0}} },
     {% endfor %} ]
     {% endif %}
+    {% include "dolfinweb/dfw_finbox.js" %}
 </script>
 {% endblock %}
 

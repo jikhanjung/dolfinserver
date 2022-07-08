@@ -9,25 +9,27 @@
     <tr><th>폴더이름</th><td>{{ image.dirname|default_if_none:''}}</td></tr>
     <tr>
         <td colspan="2"><div class="text-center">
-            <canvas id="canvas" width="1024" height="600"></canvas>
+            <canvas id="canvas" width="900" height="600"></canvas>
             <div id="fin_list" class="container">
             </div>
         </div>
         <form action="" method="post">
             {% csrf_token %}
-            <table class="table table-striped mt-3" style="display:none;">
+            <table class="table table-striped mt-3" style="display:block;">
                 <thead class="text-center"><tr><th>이름</th><th>Box좌표</th><th>삭제</th></tr></thead>
                 {% if dolfinbox_formset %}
                     {{ dolfinbox_formset.management_form }}
                     <tbody id="dolfinbox-form-container">
                         <tr id="empty-form" style="display:none;">
                             <td>{{dolfinbox_formset.empty_form.dolfin_image}}{{dolfinbox_formset.empty_form.boxname}}</td>
+                            <td>{{dolfinbox_formset.empty_form.boxcolor}}</td>
                             <td>{{dolfinbox_formset.empty_form.coords_str}}</td>
                             <td>{{dolfinbox_formset.empty_form.DELETE}}</td>
                         </tr>
                         {% for dolfinbox_form in dolfinbox_formset %}
                         <tr class="dolfinbox-form text-center">
                             <td>{{dolfinbox_form.id}}{{dolfinbox_form.dolfin_image}}{{dolfinbox_form.boxname}}</td>
+                            <td>{{dolfinbox_form.boxcolor}}</td>
                             <td>{{dolfinbox_form.coords_str}}</td>
                             <td>{{dolfinbox_form.DELETE}}</td>
                         </tr>
@@ -48,13 +50,13 @@
 <tfoot><tr><td colspan="2"></td></tr></tfoot>
 </table>
 <script>
-    {% include "dolfinweb/dfw_finbox.js" %}
     {% if image.finboxes.all %}
-    box_list = [ 
+    box_list_data = [ 
     {%for finbox in image.finboxes.all %}
-        [ {{finbox.coords_str}} ],
+        { coords: [ {{finbox.coords_str}} ], boxname: "{{finbox.boxname}}", boxcolor: "{{finbox.boxcolor}}",formidx: {{forloop.counter0}} },
     {% endfor %} ]
     {% endif %}
+    {% include "dolfinweb/dfw_finbox.js" %}
     editable = true;
 </script>
 {% endblock %}

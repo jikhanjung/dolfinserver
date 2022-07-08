@@ -80,4 +80,5 @@ class DolfinBox(models.Model):
     dolfin_image = models.ForeignKey("DolfinImage",related_name="finboxes",on_delete=models.CASCADE)
     coords_str = models.CharField(max_length=100,blank=True,null=True,default='')
     boxname = models.CharField(max_length=100,blank=True,null=True,default='')
+    boxcolor = models.CharField(max_length=20,blank=True,null=True,default='')
     
