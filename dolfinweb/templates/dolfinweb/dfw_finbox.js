@@ -374,6 +374,7 @@ class DolfinBox {
 			this.boxname = this.get_random_name();
 		}
 		this.visible = true;
+		this.selected = false;
 	}
 	// Getter
 	get_coords() {
@@ -539,10 +540,16 @@ class DolfinBox {
 		//console.log(box_list);
         for( var i=0;i<box_list.length;i++){
 			if(box_list[i].visible) {
-				box = box_list[i].get_coords();
+				curr_box = box_list[i];
+				coords = curr_box.get_coords();
+				if( curr_box.selected ) {
+					context.strokeStyle='rgba(255,0,0,0.4)';
+				} else {
+					context.strokeStyle='rgba(0,0,0,0.4)';
+				}
 				context.beginPath();
 				//context.rect( (box[0]/image_canvas_ratio)*scale+lastupX+deltaX, (box[1]/image_canvas_ratio)*scale+lastupY+deltaY, ((box[2]-box[0])/image_canvas_ratio)*scale, ((box[3]-box[1])/image_canvas_ratio)*scale);
-				context.rect( scale_to_canvas(box[0])+lastupX+deltaX, scale_to_canvas(box[1])+lastupY+deltaY, scale_to_canvas(box[2]-box[0]), scale_to_canvas(box[3]-box[1]));
+				context.rect( scale_to_canvas(coords[0])+lastupX+deltaX, scale_to_canvas(coords[1])+lastupY+deltaY, scale_to_canvas(coords[2]-coords[0]), scale_to_canvas(coords[3]-coords[1]));
 				context.stroke();            
 	
 			}
@@ -636,8 +643,18 @@ class DolfinBox {
             box_x2 = X;
             box_y2 = Y;
         } else {
+			//console.log("check nearby box");
 			for( var idx = 0 ; idx < box_list.length ; idx++ ){
-				if( X == box_list[idx][0] ){}
+				curr_box = box_list[idx]
+				coords = curr_box.get_coords()
+				x1 = scale_to_canvas(coords[0])+lastupX;
+				//console.log(box_list[idx].get_coords()[0],x1,X)
+				if( Math.abs(x1 - X)<5 ){
+					console.log("close to x1 of",idx)
+					curr_box.selected = true;
+				} else {
+					curr_box.selected = false;
+				}
 			}
 		}
         lastX = X;
