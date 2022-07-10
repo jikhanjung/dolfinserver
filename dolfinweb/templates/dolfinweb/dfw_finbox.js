@@ -415,7 +415,7 @@ class DolfinBox {
 	}
 	show_temp_coords(){
         this.coord_input.value = String(this.get_temp_coords());
-		console.log("coords:",this.get_coords(),"temp_coords:",this.get_temp_coords())
+		//console.log("coords:",this.get_coords(),"temp_coords:",this.get_temp_coords())
 	}
 	update_form(){
 		//console.log("update form", this.boxname, "coords:",this.coord_input.value, String(this.get_coords()));
@@ -437,9 +437,9 @@ class DolfinBox {
   }
 
   function handleCheckboxChange(e){
-	console.log(e);
+	//console.log(e);
 	idx = this.getAttribute("boxindex");
-	console.log(idx);
+	//console.log(idx);
 	if( this.checked){
 		box_list[idx].visible=false;
 	} else {
@@ -573,11 +573,12 @@ class DolfinBox {
             canvas.addEventListener("mousewheel", handleMouseWheel, false); // mousewheel duplicates dblclick function
             canvas.addEventListener('contextmenu', (event) => {event.preventDefault();});
             canvas.addEventListener("DOMMouseScroll", handleMouseWheel, false); // for Firefox
-
+			canvas.addEventListener('dblclick', handleDblClick, false );
         }
     }
     function scale_to_canvas( coord ) { return Math.round(( coord / image_canvas_ratio ) * scale); }
     function scale_to_image( coord ) { return Math.round(( coord / scale ) * image_canvas_ratio); }
+
     function draw() {
 		context.fillStyle='grey';
 		context.lineWidth = 2;
@@ -588,7 +589,8 @@ class DolfinBox {
         for( var i=0;i<box_list.length;i++){
 			if(box_list[i].visible) {
 				curr_box = box_list[i];
-				var coords = curr_box.get_coords();
+				var _coords = curr_box.get_coords();
+				var coords = [..._coords];
 				if( curr_box.box_modify ) {
 					curr_box.temp_coords = [...coords];
 					canvas.style.cursor = curr_box.cursor_style;
@@ -598,6 +600,7 @@ class DolfinBox {
 					if( curr_box.x2_selected || curr_box.all_selected ) { curr_box.temp_coords[2] += scale_to_image(mod_x2 - mod_x1); }
 					if( curr_box.y2_selected || curr_box.all_selected ) { curr_box.temp_coords[3] += scale_to_image(mod_y2 - mod_y1); }
 					coords = [...curr_box.temp_coords]
+					curr_box.show_temp_coords();
 					//context.strokeStyle='rgba(0,0,0,1)';
 				}
 				//context.rect( (box[0]/image_canvas_ratio)*scale+lastupX+deltaX, (box[1]/image_canvas_ratio)*scale+lastupY+deltaY, ((box[2]-box[0])/image_canvas_ratio)*scale, ((box[3]-box[1])/image_canvas_ratio)*scale);
@@ -642,9 +645,34 @@ class DolfinBox {
             context.stroke();            
         }
     }
-    
+
+	function handleDblClick(event) {
+		if( selected_box != null ){
+			var coords = selected_box.get_coords();
+			var center_x = Math.round(( coords[0] + coords[2] ) / 2.0 );
+			var center_y = Math.round(( coords[1] + coords[3] ) / 2.0 );
+			var rect_halfwidth = coords[2] - coords[0];
+			var rect_halfheight = coords[3] - coords[1];
+			var rect_whratio = rect_halfwidth / rect_halfheight;
+
+			if( whratioCanvas > rect_whratio ) {
+				rect_halfwidth = rect_halfheight * whratioCanvas;
+			} else {
+				rect_halfheight = rect_halfwidth / whratioCanvas;
+			}
+			var rect_x1 = center_x - rect_halfwidth;
+			var rect_x2 = center_x + rect_halfwidth;
+			var rect_y1 = center_y - rect_halfheight;
+			var rect_y2 = center_y + rect_halfheight;
+			scale = Math.round( ( widthImage / ( rect_halfwidth * 2 ) ) * 10 ) / 10;
+			lastupX = -1 * scale_to_canvas(rect_x1);
+			lastupY = -1 * scale_to_canvas(rect_y1);
+			draw();
+
+		}
+	}
+
     function handleMouseDown(event) {
-        //console.log("button:", event.button);
         if(event.button == RIGHT_BUTTON) {
             panning = true;
             //downX = event.clientX - this.offsetLeft - this.clientLeft + this.scrollLeft;
@@ -722,10 +750,14 @@ class DolfinBox {
 				modifying_box = false;
 				//console.log(selected_box.get_coords());
 				//console.log(selected_box.get_temp_coords());
+				if( selected_box.temp_coords[0] > selected_box.temp_coords[2] ) { [ selected_box.temp_coords[0],selected_box.temp_coords[2] ] = [ selected_box.temp_coords[2],selected_box.temp_coords[0] ]; }
+				if( selected_box.temp_coords[1] > selected_box.temp_coords[3] ) { [ selected_box.temp_coords[1],selected_box.temp_coords[3] ] = [ selected_box.temp_coords[3],selected_box.temp_coords[1] ]; }
+
 				selected_box.set_coords(selected_box.temp_coords);
 				[mod_x1,mod_y1,mod_x2,mod_y2] = [-1,-1,-1,-1];				
+				selected_box = null;
 			}
-
+			//console.log("set selected_box null")
         }
 		draw();
     }
@@ -737,6 +769,7 @@ class DolfinBox {
         let box = this.getBoundingClientRect();
         var X = Math.round(event.clientX-box.left);
         var Y = Math.round(event.clientY-box.top);
+		//selected_box = null;
 
         //console.log(X,event.clientX,box.left,box.top,this.offsetLeft,this.clientLeft,this.scrollLeft,Y,event.clientY,this.offsetTop,this.clientTop,this.scrollTop,lastupX,lastupY);
         //console.log(event.clientX,box.left,event.clientY,box.top,Math.round(event.clientX-box.left),Math.round(event.clientY-box.top));
@@ -750,10 +783,11 @@ class DolfinBox {
         } else if ( modifying_box ){
             mod_x2 = X;
             mod_y2 = Y;
-			selected_box.show_temp_coords();
+			//selected_box.show_temp_coords();
 			//console.log(selected_box)
         } else {
 			//console.log("check nearby box");
+			modifying_box_exist = false;
 			for( var idx = 0 ; idx < box_list.length ; idx++ ){
 				curr_box = box_list[idx]
 				coords = curr_box.get_coords()
@@ -761,6 +795,8 @@ class DolfinBox {
 				y1 = scale_to_canvas(coords[1])+lastupY;
 				x2 = scale_to_canvas(coords[2])+lastupX;
 				y2 = scale_to_canvas(coords[3])+lastupY;
+				if(x1>x2){[x1,x2]=[x2,x1];}
+				if(y1>y2){[y1,y2]=[y2,y1];}
 				//console.log(box_list[idx].get_coords()[0],x1,X)
 				NEARBY_THRESHOLD = 10;
 				curr_box.box_modify = false;
@@ -771,6 +807,7 @@ class DolfinBox {
 				curr_box.y1_selected = false;
 				curr_box.y2_selected = false;
 				curr_box.all_selected = false;
+				if( modifying_box_exist ) { curr_box.box_modify = false; continue; }
 				if( y1-NEARBY_THRESHOLD < Y && y2+NEARBY_THRESHOLD>Y){
 					if( Math.abs(x1 - X)<NEARBY_THRESHOLD ){
 						curr_box.cursor_style = 'ew-resize';
@@ -809,9 +846,12 @@ class DolfinBox {
 				}
 				if( curr_box.box_modify ) { 
 					//console.log("modifying box", curr_box.boxname );
+					modifying_box_exist = true;
 					selected_box = curr_box; 
+					//console.log("modifying box", curr_box.boxname);
 				}				
 			}
+			if( !modifying_box_exist ) { selected_box = null; }
 		}
         lastX = X;
         lastY = Y;
