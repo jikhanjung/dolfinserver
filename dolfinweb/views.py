@@ -87,3 +87,13 @@ def dfw_edit_finbox(request, pk):
         dolfinbox_formset = DolfinBoxFormSet(instance=image)
          
     return render(request, 'dolfinweb/dfw_edit_finbox.html', {'image': image, 'user_obj': user_obj, 'dolfinbox_formset':dolfinbox_formset})
+
+def dfw_fin_list(request, obs_date):
+    user_obj = get_user_obj( request )
+
+    fin_list = DolfinBox.objects.filter(exifdatetime__date=obs_date)
+    paginator = Paginator(fin_list, ITEMS_PER_PAGE) # Show ITEMS_PER_PAGE contacts per page.
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    return render(request, 'dolfinweb/dfw_image_list.html', {'image_list': image_list, 'page_obj': page_obj, 'user_obj': user_obj, 'date':obs_date })

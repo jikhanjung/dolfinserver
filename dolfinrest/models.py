@@ -81,4 +81,9 @@ class DolfinBox(models.Model):
     coords_str = models.CharField(max_length=100,blank=True,null=True,default='')
     boxname = models.CharField(max_length=100,blank=True,null=True,default='')
     boxcolor = models.CharField(max_length=20,blank=True,null=True,default='')
+    exifdatetime = models.DateTimeField(blank=True,null=True)
+    created_on = models.DateTimeField(blank=True,null=True,auto_now_add=True)
+    created_by = models.CharField(max_length=20,blank=True,null=True,default='')
+    modified_on = models.DateTimeField(blank=True,null=True,auto_now=True)
+    modified_by = models.CharField(max_length=20,blank=True,null=True,default='')
     
