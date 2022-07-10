@@ -413,7 +413,12 @@ class DolfinBox {
 			}
 		}
 	}
+	show_temp_coords(){
+        this.coord_input.value = String(this.get_temp_coords());
+		console.log("coords:",this.get_coords(),"temp_coords:",this.get_temp_coords())
+	}
 	update_form(){
+		//console.log("update form", this.boxname, "coords:",this.coord_input.value, String(this.get_coords()));
         this.coord_input.value = String(this.get_coords());
         this.name_input.value = this.boxname;
 		this.color_input.value = this.boxcolor;
@@ -425,6 +430,7 @@ class DolfinBox {
 		this.coords = [...this.temp_coords];
 	}
 	cancel_modification() {
+		this.temp_coords = null;
 		//this.coords = [...this.original_coords];
 	}
 	// Method
@@ -488,6 +494,7 @@ class DolfinBox {
         //add_form(new_box);
     }
 
+
     var LEFT_BUTTON = 0;
     var RIGHT_BUTTON = 2;
     var canvas = document.getElementById("canvas");
@@ -517,7 +524,26 @@ class DolfinBox {
     var deltaY = 0;
     var scale=1;
 	var selected_box = null;
-    
+
+	function draw_rect(a_coords) {
+		context.rect( scale_to_canvas(a_coords[0])+lastupX+deltaX, scale_to_canvas(a_coords[1])+lastupY+deltaY, scale_to_canvas(a_coords[2]-a_coords[0]), scale_to_canvas(a_coords[3]-a_coords[1]));
+	}
+	function draw_line(a_coords, a_line) {
+		//console.log("draw line", a_line, a_coords,context.strokeStyle);
+		a_coords[0] = scale_to_canvas(a_coords[0])+lastupX+deltaX
+		a_coords[1] = scale_to_canvas(a_coords[1])+lastupY+deltaY
+		a_coords[2] = scale_to_canvas(a_coords[2])+lastupX+deltaX
+		a_coords[3] = scale_to_canvas(a_coords[3])+lastupY+deltaY
+		//console.log(a_coords);
+		var from_x,from_y,to_x,to_y;
+		if(a_line == 'x1'){ from_x=to_x=a_coords[0]; from_y=a_coords[1]; to_y=a_coords[3] }
+		if(a_line == 'x2'){ from_x=to_x=a_coords[2]; from_y=a_coords[1]; to_y=a_coords[3] }
+		if(a_line == 'y1'){ from_y=to_y=a_coords[1]; from_x=a_coords[0]; to_x=a_coords[2] }
+		if(a_line == 'y2'){ from_y=to_y=a_coords[3]; from_x=a_coords[0]; to_x=a_coords[2] }
+		context.moveTo( from_x,from_y);
+		context.lineTo(to_x,to_y);
+	}
+
     var img = new Image();
     img.src= "{{image.imagefile.url}}";
     img.onload=function(){
@@ -553,7 +579,8 @@ class DolfinBox {
     function scale_to_canvas( coord ) { return Math.round(( coord / image_canvas_ratio ) * scale); }
     function scale_to_image( coord ) { return Math.round(( coord / scale ) * image_canvas_ratio); }
     function draw() {
-        context.fillStyle = "grey";
+		context.fillStyle='grey';
+		context.lineWidth = 2;
         context.fillRect(0,0, widthCanvas,heightCanvas);
         context.drawImage(img,lastupX+deltaX,lastupY+deltaY,(widthImage/image_canvas_ratio)*scale,(heightImage/image_canvas_ratio)*scale);
 		//console.log(box_list);
@@ -565,18 +592,45 @@ class DolfinBox {
 				if( curr_box.box_modify ) {
 					curr_box.temp_coords = [...coords];
 					canvas.style.cursor = curr_box.cursor_style;
-					context.strokeStyle='rgba(255,0,0,0.4)';
+					//context.strokeStyle='rgba(255,0,0,0.4)';
 					if( curr_box.x1_selected || curr_box.all_selected ) { curr_box.temp_coords[0] += scale_to_image(mod_x2 - mod_x1); }
 					if( curr_box.y1_selected || curr_box.all_selected ) { curr_box.temp_coords[1] += scale_to_image(mod_y2 - mod_y1); }
 					if( curr_box.x2_selected || curr_box.all_selected ) { curr_box.temp_coords[2] += scale_to_image(mod_x2 - mod_x1); }
 					if( curr_box.y2_selected || curr_box.all_selected ) { curr_box.temp_coords[3] += scale_to_image(mod_y2 - mod_y1); }
 					coords = [...curr_box.temp_coords]
-					context.strokeStyle='rgba(0,0,0,0.4)';
+					//context.strokeStyle='rgba(0,0,0,1)';
 				}
-				context.beginPath();
 				//context.rect( (box[0]/image_canvas_ratio)*scale+lastupX+deltaX, (box[1]/image_canvas_ratio)*scale+lastupY+deltaY, ((box[2]-box[0])/image_canvas_ratio)*scale, ((box[3]-box[1])/image_canvas_ratio)*scale);
-				context.rect( scale_to_canvas(coords[0])+lastupX+deltaX, scale_to_canvas(coords[1])+lastupY+deltaY, scale_to_canvas(coords[2]-coords[0]), scale_to_canvas(coords[3]-coords[1]));
-				context.stroke();	
+				if( curr_box.all_selected ) {
+					context.beginPath();
+					context.strokeStyle='rgba(255,0,0,1)';
+					draw_rect(coords);
+					context.stroke();
+					context.closePath();
+				} else if( !curr_box.box_modify ) {
+					context.beginPath();
+					context.strokeStyle='rgba(0,0,0,1)';
+					draw_rect(coords);
+					context.stroke();
+					context.closePath();
+				} else {
+					context.beginPath();
+					context.strokeStyle='rgba(0,0,0,1)';
+					if( !curr_box.x1_selected ) draw_line([...coords], 'x1');
+					if( !curr_box.x2_selected ) draw_line([...coords], 'x2');
+					if( !curr_box.y1_selected ) draw_line([...coords], 'y1');
+					if( !curr_box.y2_selected ) draw_line([...coords], 'y2');
+					context.stroke();
+					context.closePath();
+					context.beginPath();
+					context.strokeStyle='rgba(255,0,0,0.5)';
+					if( curr_box.x1_selected ) draw_line([...coords], 'x1');
+					if( curr_box.x2_selected ) draw_line([...coords], 'x2');
+					if( curr_box.y1_selected ) draw_line([...coords], 'y1');
+					if( curr_box.y2_selected ) draw_line([...coords], 'y2');
+					context.stroke();
+					context.closePath();
+				}
 			}
         }
         if( drawing_box ) {
@@ -601,7 +655,7 @@ class DolfinBox {
             //console.log("down:",downX,downY);
         } else if( event.button == LEFT_BUTTON ) {
             let box = this.getBoundingClientRect();
-			console.log(selected_box);
+			//console.log(selected_box);
 			if( selected_box != null ) {
 				mod_x1 = Math.round(event.clientX-box.left);
 				mod_y1 = Math.round(event.clientY-box.top);
@@ -625,15 +679,21 @@ class DolfinBox {
             deltaX = 0;
             deltaY = 0;
             panning=false;
-        } 
+        } else if( modifying_box ) {
+			modifying_box = false;
+			[mod_x1,mod_y1,mod_x2,mod_y2]= [0,0,0,0]
+			selected_box.cancel_modification();
+			selected_box.update_form();
+			selected_box = null;
+		}
         draw()
     }
 
 
     function handleMouseUp(event) {
         //if(event.button == 2) { console.log("right button"); event.preventDefault(); }
-        console.log("mouse up");
-		console.log(selected_box);
+        //console.log("mouse up");
+		//console.log(selected_box);
         if(event.button == RIGHT_BUTTON) {
             panning = false;
             lastupX += deltaX;
@@ -660,12 +720,14 @@ class DolfinBox {
 				[box_x1,box_y1,box_x2,box_y2] = [-1,-1,-1,-1];
 			} else if( modifying_box ) {
 				modifying_box = false;
-				console.log(selected_box.get_coords());
-				console.log(selected_box.get_temp_coords());
+				//console.log(selected_box.get_coords());
+				//console.log(selected_box.get_temp_coords());
 				selected_box.set_coords(selected_box.temp_coords);
 				[mod_x1,mod_y1,mod_x2,mod_y2] = [-1,-1,-1,-1];				
 			}
+
         }
+		draw();
     }
 
     
@@ -688,7 +750,8 @@ class DolfinBox {
         } else if ( modifying_box ){
             mod_x2 = X;
             mod_y2 = Y;
-			console.log(selected_box)
+			selected_box.show_temp_coords();
+			//console.log(selected_box)
         } else {
 			//console.log("check nearby box");
 			for( var idx = 0 ; idx < box_list.length ; idx++ ){
@@ -744,9 +807,10 @@ class DolfinBox {
 				} else if( curr_box.x1_selected && curr_box.y2_selected || curr_box.x2_selected && curr_box.y1_selected ) {
 					curr_box.cursor_style = 'nesw-resize';
 				}
-				if( curr_box.box_modify ) { selected_box = curr_box; }
-
-
+				if( curr_box.box_modify ) { 
+					//console.log("modifying box", curr_box.boxname );
+					selected_box = curr_box; 
+				}				
 			}
 		}
         lastX = X;
