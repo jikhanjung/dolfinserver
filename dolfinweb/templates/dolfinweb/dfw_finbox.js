@@ -572,9 +572,15 @@ class DolfinBox {
 				var l_finbox = add_finbox(box_list_data[idx]['coords'],false);
 				l_finbox.set_name(box_list_data[idx]['boxname']);
 				l_finbox.set_color(box_list_data[idx]['boxcolor']);
+				if( box_list_data[idx]['id'] == finid ) {
+					selected_box = l_finbox;
+				}
 				//l_finbox.
 			}
-		}		
+		}
+		if( selected_box != null )
+			focusSelectedBox();
+
         //console.log("canvas:", widthCanvas, heightCanvas, "image:", widthImage, heightImage);
         //image_canvas_ratio = widthImage/widthCanvas;
         draw();
@@ -595,7 +601,7 @@ class DolfinBox {
     function scale_to_image( coord ) { return Math.round(( coord / scale ) * image_canvas_ratio); }
 
     function draw() {
-        console.log("draw")
+        //console.log("draw")
 
 		context.fillStyle='grey';
 		context.lineWidth = 2;
@@ -664,7 +670,7 @@ class DolfinBox {
     }
 
     function handleMouseDown(event) {
-        console.log("mouse down");
+        //console.log("mouse down");
         if(event.button == RIGHT_BUTTON) {
             panning = true;
             //downX = event.clientX - this.offsetLeft - this.clientLeft + this.scrollLeft;
@@ -692,7 +698,7 @@ class DolfinBox {
 
     function handleMouseOut(event) {
         //if(event.button == 2) { console.log("right button"); event.preventDefault(); }
-        console.log("mouse out")
+        //console.log("mouse out")
         if(panning) {
             lastupX += deltaX;
             lastupY += deltaY;
@@ -714,7 +720,7 @@ class DolfinBox {
         //if(event.button == 2) { console.log("right button"); event.preventDefault(); }
         //console.log("mouse up");
 		//console.log(selected_box);
-        console.log("mouse up");
+        //console.log("mouse up");
         if(event.button == RIGHT_BUTTON) {
             panning = false;
             lastupX += deltaX;
@@ -757,7 +763,7 @@ class DolfinBox {
 
     
     function handleMouseMove(event) {
-        console.log("mouse move");
+        //console.log("mouse move");
 
         //var X = event.clientX - this.offsetLeft - this.clientLeft + this.scrollLeft;
         //var Y = event.clientY - this.offsetTop - this.clientTop + this.scrollTop;
@@ -843,28 +849,27 @@ class DolfinBox {
 					//console.log("modifying box", curr_box.boxname );
 					modifying_box_exist = true;
 					selected_box = curr_box; 
-					console.log("modifying box", curr_box.boxname);
+					//console.log("modifying box", curr_box.boxname);
 				}				
 			}
 			if( !modifying_box_exist ) { 
 				selected_box = null; 
 			} else {
-				console.log("modifying_box_exist:", modifying_box_exist);
-				console.log("selected_box 1:",selected_box.boxname);
+				//console.log("modifying_box_exist:", modifying_box_exist);
+				//console.log("selected_box 1:",selected_box.boxname);
 			}
 		}
         lastX = X;
         lastY = Y;
         draw();
-		console.log("selected_box 2:",selected_box.boxname);
+		//console.log("selected_box 2:",selected_box.boxname);
 
     }
 
-	function handleDblClick(event) {
-		console.log("double click", selected_box.boxname);
+	function focusSelectedBox(){
 		if( selected_box != null ){
 			var coords = selected_box.get_coords();
-			console.log(coords);
+			//console.log(coords);
 			var center_x = Math.round(( coords[0] + coords[2] ) / 2.0 );
 			var center_y = Math.round(( coords[1] + coords[3] ) / 2.0 );
 			var rect_halfwidth = coords[2] - coords[0];
@@ -877,15 +882,17 @@ class DolfinBox {
 				rect_halfheight = rect_halfwidth / whratioCanvas;
 			}
 			var rect_x1 = center_x - rect_halfwidth;
-			var rect_x2 = center_x + rect_halfwidth;
 			var rect_y1 = center_y - rect_halfheight;
-			var rect_y2 = center_y + rect_halfheight;
 			scale = Math.round( ( widthImage / ( rect_halfwidth * 2 ) ) * 10 ) / 10;
 			lastupX = -1 * scale_to_canvas(rect_x1);
 			lastupY = -1 * scale_to_canvas(rect_y1);
 			draw();
-
 		}
+	}
+
+	function handleDblClick(event) {
+		console.log("double click", selected_box.boxname);
+		focusSelectedBox();
 	}
 		
     function handleMouseWheel(event) {

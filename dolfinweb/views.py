@@ -5,8 +5,11 @@ from .models import UserActivity
 from django.forms import inlineformset_factory
 from dolfinrest.forms import DolfinBoxForm #AuthorForm, JournalForm, ReferenceForm, ReferenceAuthorForm, ScientificNameForm, LithoUnitForm, ChronoUnitForm, ScientificNameAuthorForm, ReferenceTaxonForm, ReferenceTaxonSpecimenForm, UserForm, NewUserForm
 from django.shortcuts import render, get_object_or_404
-
+from dolfinserver.settings import MEDIA_ROOT
 from django.core.paginator import Paginator
+from django.http import FileResponse
+from PIL import Image
+import io
 
 LOGIN_URL = 'user_login'
 ITEMS_PER_PAGE = 20
@@ -69,15 +72,20 @@ def dfw_image_view(request, pk):
 
     return render(request, 'dolfinweb/dfw_image_view.html', {'image': image, 'user_obj': user_obj, })
 
-def dfw_edit_finbox(request, pk):
+def dfw_edit_finbox(request, pk, finid=None):
     user_obj = get_user_obj( request )
+    if( finid ):
+        print("finid:",finid)
 
     image = get_object_or_404(DolfinImage,pk=pk)
     if request.method == 'POST':
         DolfinBoxFormSet = inlineformset_factory(DolfinImage,DolfinBox,form=DolfinBoxForm)
         dolfinbox_formset = DolfinBoxFormSet(request.POST, instance=image)
         if dolfinbox_formset.is_valid():
-            dolfinbox_formset.save()
+            boxset = dolfinbox_formset.save(commit=False)
+            for box in boxset:
+                box.exifdatetime = image.exifdatetime
+                box.save()
         else:
             print("box form invlid")
             print(dolfinbox_formset.errors)
@@ -86,7 +94,7 @@ def dfw_edit_finbox(request, pk):
         DolfinBoxFormSet = inlineformset_factory(DolfinImage,DolfinBox,form=DolfinBoxForm,extra=0)
         dolfinbox_formset = DolfinBoxFormSet(instance=image)
          
-    return render(request, 'dolfinweb/dfw_edit_finbox.html', {'image': image, 'user_obj': user_obj, 'dolfinbox_formset':dolfinbox_formset})
+    return render(request, 'dolfinweb/dfw_edit_finbox.html', {'image': image, 'user_obj': user_obj, 'dolfinbox_formset':dolfinbox_formset, 'finid':finid})
 
 def dfw_fin_list(request, obs_date):
     user_obj = get_user_obj( request )
@@ -96,4 +104,28 @@ def dfw_fin_list(request, obs_date):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'dolfinweb/dfw_image_list.html', {'image_list': image_list, 'page_obj': page_obj, 'user_obj': user_obj, 'date':obs_date })
+    return render(request, 'dolfinweb/dfw_fin_list.html', {'fin_list': fin_list, 'page_obj': page_obj, 'user_obj': user_obj, 'date':obs_date })
+
+
+def dfw_fin_view(request, pk):
+    user_obj = get_user_obj( request )
+
+    fin = DolfinBox.objects.get(pk=pk)
+    image = fin.dolfin_image
+
+    return render(request, 'dolfinweb/dfw_fin_view.html', {'fin': fin_list, 'page_obj': page_obj, 'user_obj': user_obj, 'date':obs_date })
+
+def dfw_fin_image(request, pk):
+
+    fin = DolfinBox.objects.get(pk=pk)
+    image = fin.dolfin_image
+    filepath = MEDIA_ROOT + str(image.imagefile)
+    im = Image.open(filepath)
+    [left,top,right,bottom] = [int(x) for x in fin.coords_str.split(",") ]
+    im1 = im.crop((left, top, right, bottom))
+    buf = io.BytesIO()
+    im1.save(buf, format='JPEG')
+    buf.seek(0)
+
+    return FileResponse(buf)
+    

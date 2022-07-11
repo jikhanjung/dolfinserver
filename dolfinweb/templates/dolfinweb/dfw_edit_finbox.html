@@ -50,10 +50,13 @@
 <tfoot><tr><td colspan="2"></td></tr></tfoot>
 </table>
 <script>
+    var finid = {{finid}};
     {% if image.finboxes.all %}
     box_list_data = [ 
     {%for finbox in image.finboxes.all %}
-        { coords: [ {{finbox.coords_str}} ], boxname: "{{finbox.boxname}}", boxcolor: "{{finbox.boxcolor}}",formidx: {{forloop.counter0}} },
+        { coords: [ {{finbox.coords_str}} ], boxname: "{{finbox.boxname}}", boxcolor: "{{finbox.boxcolor}}",formidx: {{forloop.counter0}}, id:{{finbox.id}}
+            {% if finbox.id == finid %}selected: true{% endif %}
+        },
     {% endfor %} ]
     {% endif %}
     {% include "dolfinweb/dfw_finbox.js" %}

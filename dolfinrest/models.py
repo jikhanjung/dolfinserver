@@ -87,3 +87,5 @@ class DolfinBox(models.Model):
     modified_on = models.DateTimeField(blank=True,null=True,auto_now=True)
     modified_by = models.CharField(max_length=20,blank=True,null=True,default='')
     
+    class Meta:
+        ordering = ["exifdatetime","id"]
