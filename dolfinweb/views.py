@@ -51,7 +51,10 @@ def dfw_image_list(request, obs_date):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
-    return render(request, 'dolfinweb/dfw_image_list.html', {'image_list': image_list, 'page_obj': page_obj, 'user_obj': user_obj, 'date':obs_date })
+    request.session['obs_date'] = obs_date
+    request.session['image_list_page'] = page_number
+
+    return render(request, 'dolfinweb/dfw_image_list.html', {'image_list': image_list, 'page_obj': page_obj, 'user_obj': user_obj, 'obs_date':obs_date })
 
 def dfw_date_list(request):
     user_obj = get_user_obj( request )
@@ -69,8 +72,10 @@ def dfw_image_view(request, pk):
     user_obj = get_user_obj( request )
 
     image = DolfinImage.objects.get(pk=pk)
+    page_number = request.session['image_list_page']
+    obs_date = request.session['obs_date']
 
-    return render(request, 'dolfinweb/dfw_image_view.html', {'image': image, 'user_obj': user_obj, })
+    return render(request, 'dolfinweb/dfw_image_view.html', {'image': image, 'user_obj': user_obj, 'page_number':page_number, 'obs_date': obs_date})
 
 def dfw_edit_finbox(request, pk, finid=None):
     user_obj = get_user_obj( request )
@@ -81,11 +86,18 @@ def dfw_edit_finbox(request, pk, finid=None):
     if request.method == 'POST':
         DolfinBoxFormSet = inlineformset_factory(DolfinImage,DolfinBox,form=DolfinBoxForm)
         dolfinbox_formset = DolfinBoxFormSet(request.POST, instance=image)
+        print("post")
         if dolfinbox_formset.is_valid():
+            print("form valid")
+            print(dolfinbox_formset)
             boxset = dolfinbox_formset.save(commit=False)
+
             for box in boxset:
                 box.exifdatetime = image.exifdatetime
                 box.save()
+            for delete_value in dolfinbox_formset.deleted_objects:
+                delete_value.delete()                    
+
         else:
             print("box form invlid")
             print(dolfinbox_formset.errors)
@@ -104,16 +116,10 @@ def dfw_fin_list(request, obs_date):
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
+    request.session['date'] = obs_date
+    request.session['fin_list_page'] = page_number
+
     return render(request, 'dolfinweb/dfw_fin_list.html', {'fin_list': fin_list, 'page_obj': page_obj, 'user_obj': user_obj, 'date':obs_date })
-
-
-def dfw_fin_view(request, pk):
-    user_obj = get_user_obj( request )
-
-    fin = DolfinBox.objects.get(pk=pk)
-    image = fin.dolfin_image
-
-    return render(request, 'dolfinweb/dfw_fin_view.html', {'fin': fin_list, 'page_obj': page_obj, 'user_obj': user_obj, 'date':obs_date })
 
 def dfw_fin_image(request, pk):
 

@@ -10,7 +10,6 @@ urlpatterns = [
     path('dfw_edit_finbox/<str:pk>', views.dfw_edit_finbox, name='dfw_edit_finbox'),
     path('dfw_edit_finbox/<str:pk>/<str:finid>', views.dfw_edit_finbox, name='dfw_edit_finbox'),
     path('dfw_fin_list/<str:obs_date>', views.dfw_fin_list, name='dfw_fin_list'),
-    path('dfw_fin_view/<str:pk>', views.dfw_fin_view, name='dfw_fin_view'),
     path('dfw_fin_image/<str:pk>', views.dfw_fin_image, name='dfw_fin_image'),
 
 ]

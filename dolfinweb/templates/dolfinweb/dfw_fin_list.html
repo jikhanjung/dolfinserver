@@ -18,8 +18,8 @@
     <div class="row">
         {% for fin in page_obj %}
             <div class="col">
-                <a href="{% url 'dfw_fin_view' fin.id %}"><img width="200" src="{% url 'dfw_fin_image' fin.id %}"></a><br/>
-            {{image.filename}} @{{image.exifdatetime|time:"H:i"}}
+                <a href="{% url 'dfw_edit_finbox' fin.dolfin_image.id fin.id %}"><img width="200" src="{% url 'dfw_fin_image' fin.id %}"></a><br/>
+            {{fin.boxname}} @{{fin.exifdatetime|time:"H:i"}}
         </div>
         {% endfor %}
     </div>
@@ -34,6 +34,7 @@
                 <div class="row">
                     <div class="col">{% include "dfwpaginator.html" %}</div>
                     <div class="col text-end">
+                        <a class="btn btn-info text-white btn-sm" role="button" href="{% url 'dfw_image_list' date %}">사진 목록</a>
                     </div>
                 </div>
             </div>

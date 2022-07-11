@@ -15,7 +15,14 @@
         </td>
     </tr>
     </tbody>    
-<tfoot><tr><td colspan="2"><a href="{% url 'dfw_edit_finbox' image.id %}">[Edit Fins]</a></td></tr></tfoot>
+<tfoot><tr><td colspan="2"><div class="row">
+    <div class="col text-left">        
+        <a class="btn btn-info text-white btn-sm" role="button" href="{% url 'dfw_image_list' obs_date%}?page={{page_number}}">목록</a>
+    </div>
+    <div class="col text-end">
+        <a class="btn btn-info text-white btn-sm" role="button" href="{% url 'dfw_edit_finbox' image.id %}">Fin 편집</a>
+    </div>
+</div></td></tr></tfoot>
 </table>
 <script>
     {% if image.finboxes.all %}

@@ -7,4 +7,4 @@ from django.forms import ModelForm, inlineformset_factory, modelformset_factory
 class DolfinBoxForm(ModelForm):
     class Meta:
         model = DolfinBox
-        fields = ['dolfin_image','coords_str','boxname','boxcolor']
+        fields = ['dolfin_image','coords_str','boxname']

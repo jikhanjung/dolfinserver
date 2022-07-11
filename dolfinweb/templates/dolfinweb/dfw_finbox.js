@@ -572,7 +572,7 @@ class DolfinBox {
 				var l_finbox = add_finbox(box_list_data[idx]['coords'],false);
 				l_finbox.set_name(box_list_data[idx]['boxname']);
 				l_finbox.set_color(box_list_data[idx]['boxcolor']);
-				if( box_list_data[idx]['id'] == finid ) {
+				if( typeof finid != 'undefined' && box_list_data[idx]['id'] == finid ) {
 					selected_box = l_finbox;
 				}
 				//l_finbox.
