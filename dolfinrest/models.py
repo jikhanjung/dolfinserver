@@ -32,7 +32,7 @@ class DolfinImage(models.Model):
     dirname = models.CharField(max_length=200, blank=True, default='')
 
     class Meta:
-        ordering = ["exifdatetime"]
+        ordering = ["exifdatetime","filename"]
 
     @property
     def get_thumbnail_url(self):
@@ -89,3 +89,10 @@ class DolfinBox(models.Model):
     
     class Meta:
         ordering = ["exifdatetime","id"]
+    
+    def get_coords(self):
+        coords = [ int(x) for x in self.coords_str.split(",") ]
+        self.width = coords[2] - coords[0]
+        self.height = coords[3] - coords[1]
+        self.whratio = float(self.width) / float(self.height)
+        return coords

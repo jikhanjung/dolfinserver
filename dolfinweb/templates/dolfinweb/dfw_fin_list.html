@@ -18,7 +18,7 @@
     <div class="row">
         {% for fin in page_obj %}
             <div class="col">
-                <a href="{% url 'dfw_edit_finbox' fin.dolfin_image.id fin.id %}"><img width="200" src="{% url 'dfw_fin_image' fin.id %}"></a><br/>
+                <a href="{% url 'dfw_edit_finbox' fin.dolfin_image.id fin.id %}"><img {% if fin.whratio > 1%}width{%else%}height{%endif%}="200" src="{% url 'dfw_fin_image' fin.id %}"></a><br/>
             {{fin.boxname}} @{{fin.exifdatetime|time:"H:i"}}
         </div>
         {% endfor %}
