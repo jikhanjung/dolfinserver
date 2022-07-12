@@ -43,6 +43,19 @@ def check_admin(user_obj):
     else:
         return False
 
+def dfw_date_list(request):
+    user_obj = get_user_obj( request )
+    selected_date = request.GET.get('selected_date','')
+    date_list = DolfinDate.objects.all()
+    if selected_date != '':
+        date_list = date_list.filter(observation_date=selected_date)
+    #date_list = date_list.order_by("observation_date")
+
+    paginator = Paginator(date_list, ITEMS_PER_PAGE) # Show ITEMS_PER_PAGE contacts per page.
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'dolfinweb/dfw_date_list.html', {'date_list': date_list, 'page_obj': page_obj, 'user_obj': user_obj, 'selected_date':selected_date})
+
 def dfw_image_list(request, obs_date):
     user_obj = get_user_obj( request )
 
@@ -60,17 +73,6 @@ def dfw_image_list(request, obs_date):
 
     return render(request, 'dolfinweb/dfw_image_list.html', {'image_list': image_list, 'page_obj': page_obj, 'user_obj': user_obj, 'obs_date':obs_date })
 
-def dfw_date_list(request):
-    user_obj = get_user_obj( request )
-    selected_date = request.GET.get('selected_date','')
-    date_list = DolfinDate.objects.all()
-    if selected_date != '':
-        date_list = date_list.filter(dolfin_date=selected_date)
-
-    paginator = Paginator(date_list, ITEMS_PER_PAGE) # Show ITEMS_PER_PAGE contacts per page.
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return render(request, 'dolfinweb/dfw_date_list.html', {'date_list': date_list, 'page_obj': page_obj, 'user_obj': user_obj, 'selected_date':selected_date})
 
 def get_prev_next_image_and_page(a_image,a_image_id_list):
     next_image_set = DolfinImage.objects.filter(exifdatetime__gte=a_image.exifdatetime,filename__gt=a_image.filename).order_by("exifdatetime","filename")
@@ -129,16 +131,20 @@ def dfw_image_view(request, pk):
     image = DolfinImage.objects.get(pk=pk)
     
     last_list = request.session['last_list']
-    page_number = request.session['page_number']
+    page_number = int(request.session['page_number']) or 1
     obs_date = request.session['obs_date']
     print("page_number:",page_number)
     #if last_list == 'dfw_image_list':
     image_id_list = request.session['image_id_list']
     prev_image, next_image, page_number_diff = get_prev_next_image_and_page(image,image_id_list)
     #if page_number != request.session['page_number']:
-    
-    page_number += page_number_diff
-    request.session['page_number'] = page_number
+    if page_number_diff != 0 :
+        page_number += page_number_diff
+        image_list = DolfinImage.objects.filter(exifdatetime__date=obs_date)
+        paginator = Paginator(image_list, ITEMS_PER_PAGE) # Show ITEMS_PER_PAGE contacts per page.
+        page_obj = paginator.get_page(page_number)
+        request.session['page_number'] = page_number
+        request.session['image_id_list'] = [ img.id for img in page_obj ]
         
     context = {
         'image': image, 
@@ -170,7 +176,9 @@ def dfw_edit_finbox(request, pk, finid=None):
                 box.exifdatetime = image.exifdatetime
                 box.save()
             for delete_value in dolfinbox_formset.deleted_objects:
-                delete_value.delete()                    
+                delete_value.delete()
+            image.update_thumbnail()
+            image.save()
 
         else:
             print("box form invlid")

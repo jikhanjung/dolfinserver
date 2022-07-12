@@ -2,12 +2,14 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 import os
 from dolfinserver.settings import MEDIA_ROOT
-from PIL import Image
+from PIL import Image, ImageDraw
 
 class DolfinDate(models.Model):
     observation_date = models.DateField()
     image_count = models.IntegerField(default=0,blank=True,null=True)
     last_modified = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ["observation_date"]
 
 def upload_path(instance, filename): 
     # return f'posts/{instance.content}/{filename}'
@@ -63,6 +65,30 @@ class DolfinImage(models.Model):
             res_img = img.resize((new_w,new_h))
             res_img.save(thumbnail_path)
             #generate thumbnail        
+
+    def update_thumbnail(self):
+        #print("generate thumbnail")
+        image_path = os.path.join( MEDIA_ROOT , str(self.imagefile ))
+        #print(image.filename, image.imagefile, image_path)
+        head, tail = os.path.split(image_path)
+        new_head = os.path.join(head,'thumbnail')
+        if not os.path.isdir(new_head):
+            os.mkdir(new_head)
+        thumbnail_path = os.path.join(new_head,tail)
+        print(self.filename, image_path, thumbnail_path)
+        img = Image.open(image_path)            
+        for finbox in self.finboxes.all():
+            coords = finbox.get_coords()
+            print(coords)
+            img_ctx = ImageDraw.Draw(img)
+            img_ctx.rectangle([(coords[0],coords[1]),(coords[2],coords[3])], outline ="red", width=20)
+        img.save("d:/temp/test.jpg")
+        w, h = img.size
+        new_w = 400
+        new_h = int(h * ( 400 / w ))
+        res_img = img.resize((new_w,new_h))
+        res_img.save(thumbnail_path)
+        #generate thumbnail        
 
 class DolfinUser(AbstractUser):
     firstname = models.CharField( max_length=50, blank=True, null=True,verbose_name=u'이름')

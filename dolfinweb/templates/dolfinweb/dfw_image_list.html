@@ -19,7 +19,7 @@
         {% for image in page_obj %}
             <div class="col">
                 <a href="{% url 'dfw_image_view' image.id %}"><img width="200" src="{{image.get_thumbnail_url}}"></a><br/>            
-            {{image.filename}} @{{image.exifdatetime|time:"H:i"}} ({{image.finboxes.count}})
+            {{image.filename}} @{{image.exifdatetime|time:"H:i:s"}} ({{image.finboxes.count}})
         </div>
         {% endfor %}
     </div>

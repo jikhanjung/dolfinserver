@@ -17,9 +17,9 @@
     </tbody>    
 <tfoot><tr><td colspan="2"><div class="row">
     <div class="col text-left">        
-        {%if prev_image%}<a class="btn btn-info text-white btn-sm" role="button" href="{% url 'dfw_image_view' prev_image.id%}?page={{page_number}}">&lt;</a>{%endif%}
+        {%if prev_image%}<a class="btn btn-info text-white btn-sm" role="button" href="{% url 'dfw_image_view' prev_image.id%}">&lt;</a>{%endif%}
         <a class="btn btn-info text-white btn-sm" role="button" href="{% url last_list obs_date%}?page={{page_number}}">목록</a>
-        {%if next_image%}<a class="btn btn-info text-white btn-sm" role="button" href="{% url 'dfw_image_view' next_image.id%}?page={{page_number}}">&gt;</a>{%endif%}
+        {%if next_image%}<a class="btn btn-info text-white btn-sm" role="button" href="{% url 'dfw_image_view' next_image.id%}">&gt;</a>{%endif%}
     </div>
     <div class="col text-end">
         <a class="btn btn-info text-white btn-sm" role="button" href="{% url 'dfw_edit_finbox' image.id %}">Fin 편집</a>
