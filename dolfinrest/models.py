@@ -75,14 +75,14 @@ class DolfinImage(models.Model):
         if not os.path.isdir(new_head):
             os.mkdir(new_head)
         thumbnail_path = os.path.join(new_head,tail)
-        print(self.filename, image_path, thumbnail_path)
+        #print(self.filename, image_path, thumbnail_path)
         img = Image.open(image_path)            
         for finbox in self.finboxes.all():
             coords = finbox.get_coords()
-            print(coords)
+            #print(coords)
             img_ctx = ImageDraw.Draw(img)
             img_ctx.rectangle([(coords[0],coords[1]),(coords[2],coords[3])], outline ="red", width=20)
-        img.save("d:/temp/test.jpg")
+        #img.save("d:/temp/test.jpg")
         w, h = img.size
         new_w = 400
         new_h = int(h * ( 400 / w ))
