@@ -53,8 +53,10 @@ def dfw_image_list(request, obs_date):
     image_id_list = [ img.id for img in page_obj ]
 
     request.session['obs_date'] = obs_date
-    request.session['image_list_page'] = page_number
+    request.session['page_number'] = page_number
+    request.session['last_list'] = 'dfw_image_list'
     request.session['image_id_list'] = image_id_list
+    print("page_number in image_list:", page_number)
 
     return render(request, 'dolfinweb/dfw_image_list.html', {'image_list': image_list, 'page_obj': page_obj, 'user_obj': user_obj, 'obs_date':obs_date })
 
@@ -70,27 +72,79 @@ def dfw_date_list(request):
     page_obj = paginator.get_page(page_number)
     return render(request, 'dolfinweb/dfw_date_list.html', {'date_list': date_list, 'page_obj': page_obj, 'user_obj': user_obj, 'selected_date':selected_date})
 
-def dfw_image_view(request, pk):
-    user_obj = get_user_obj( request )
-
-    image = DolfinImage.objects.get(pk=pk)
-    next_image_set = DolfinImage.objects.filter(exifdatetime__gte=image.exifdatetime,filename__gt=image.filename).order_by("exifdatetime","filename")
-    prev_image_set = DolfinImage.objects.filter(exifdatetime__lte=image.exifdatetime,filename__lt=image.filename).order_by("-exifdatetime","-filename")
+def get_prev_next_image_and_page(a_image,a_image_id_list):
+    next_image_set = DolfinImage.objects.filter(exifdatetime__gte=a_image.exifdatetime,filename__gt=a_image.filename).order_by("exifdatetime","filename")
+    prev_image_set = DolfinImage.objects.filter(exifdatetime__lte=a_image.exifdatetime,filename__lt=a_image.filename).order_by("-exifdatetime","-filename")
     next_image = None
     prev_image = None
     if( len(next_image_set) >0):
         next_image = next_image_set[0]
+        print(next_image.id,next_image.exifdatetime,next_image.filename)
     if( len(prev_image_set) >0):
         prev_image = prev_image_set[0]
-    #print(next_image.id,next_image.exifdatetime,next_image.filename)
-    #print(prev_image.id,prev_image.exifdatetime,prev_image.filename)
+        print(prev_image.id,prev_image.exifdatetime,prev_image.filename)
 
-    page_number = request.session['image_list_page']
+    page_number_diff = 0
+    if a_image.id not in a_image_id_list:
+        first_image_in_page = DolfinImage.objects.get(pk=a_image_id_list[0])
+        last_image_in_page = DolfinImage.objects.get(pk=a_image_id_list[-1])
+        if a_image.exifdatetime > last_image_in_page.exifdatetime or \
+            ( a_image.exifdatetime == last_image_in_page.exifdatetime and a_image.filename > last_image_in_page.filename ):
+            page_number_diff = 1
+        elif a_image.exifdatetime < first_image_in_page.exifdatetime or \
+             ( a_image.exifdatetime == first_image_in_page.exifdatetime and a_image.filename > first_image_in_page.filename ):
+            page_number_diff = -1
+
+    return prev_image,next_image,page_number_diff
+
+def get_prev_next_finbox(a_finbox, a_finbox_id_list):
+    next_finbox_set = DolfinBox.objects.filter(exifdatetime__gte=a_finbox.exifdatetime,id__gt=a_finbox.id).order_by("exifdatetime","id")
+    prev_finbox_set = DolfinBox.objects.filter(exifdatetime__lte=a_finbox.exifdatetime,id__lt=a_finbox.id).order_by("-exifdatetime","-id")
+    next_finbox = None
+    prev_finbox = None
+    if( len(next_finbox_set) >0):
+        next_finbox = next_finbox_set[0]
+        #print(next_image.id,next_image.exifdatetime,next_image.filename)
+    if( len(prev_finbox_set) >0):
+        prev_finbox = prev_finbox_set[0]
+        #print(prev_image.id,prev_image.exifdatetime,prev_image.filename)
+
+    page_number_diff = 0
+    if a_finbox.id not in a_finbox_id_list:
+        first_finbox_in_page = DolfinImage.objects.get(pk=a_finbox_id_list[0])
+        last_finbox_in_page = DolfinImage.objects.get(pk=a_finbox_id_list[-1])
+        if a_finbox.exifdatetime > last_finbox_in_page.exifdatetime or \
+            ( a_finbox.exifdatetime == last_finbox_in_page.exifdatetime and a_finbox.id > last_finbox_in_page.id ):
+            page_number_diff = 1
+        elif a_finbox.exifdatetime < first_finbox_in_page.exifdatetime or \
+             ( a_finbox.exifdatetime == first_finbox_in_page.exifdatetime and a_finbox.filename > first_finbox_in_page.filename ):
+            page_number_diff = -1
+
+
+    return prev_finbox, next_finbox, page_number_diff
+
+def dfw_image_view(request, pk):
+    user_obj = get_user_obj( request )
+
+    image = DolfinImage.objects.get(pk=pk)
+    
+    last_list = request.session['last_list']
+    page_number = request.session['page_number']
     obs_date = request.session['obs_date']
+    print("page_number:",page_number)
+    #if last_list == 'dfw_image_list':
+    image_id_list = request.session['image_id_list']
+    prev_image, next_image, page_number_diff = get_prev_next_image_and_page(image,image_id_list)
+    #if page_number != request.session['page_number']:
+    
+    page_number += page_number_diff
+    request.session['page_number'] = page_number
+        
     context = {
         'image': image, 
         'user_obj': user_obj, 
-        'page_number':page_number, 
+        'last_list': last_list, 
+        'page_number': page_number, 
         'obs_date': obs_date,
         'prev_image': prev_image,
         'next_image': next_image,
@@ -133,15 +187,25 @@ def dfw_fin_list(request, obs_date):
 
     fin_list = DolfinBox.objects.filter(exifdatetime__date=obs_date)
     paginator = Paginator(fin_list, ITEMS_PER_PAGE) # Show ITEMS_PER_PAGE contacts per page.
-    page_number = request.GET.get('page')
+    page_number = request.GET.get('page',1)
     page_obj = paginator.get_page(page_number)
     for fin in page_obj:
         fin.get_coords()
 
-    request.session['date'] = obs_date
-    request.session['fin_list_page'] = page_number
+    request.session['obs_date'] = obs_date
+    request.session['page_number'] = page_number
+    request.session['last_list'] = 'dfw_fin_list'
+    #print("page_number in finbox_list:", page_number)
 
-    return render(request, 'dolfinweb/dfw_fin_list.html', {'fin_list': fin_list, 'page_obj': page_obj, 'user_obj': user_obj, 'date':obs_date })
+    #request.session['image_id_list'] = image_id_list
+    context = {
+        'fin_list': fin_list, 
+        'page_obj': page_obj, 
+        'user_obj': user_obj, 
+        'obs_date':obs_date, 
+    }
+
+    return render(request, 'dolfinweb/dfw_fin_list.html', context)
 
 def dfw_fin_image(request, pk):
 
