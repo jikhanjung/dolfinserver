@@ -1,0 +1,12 @@
+{% extends "dfwbase.html" %}
+{% block content %}
+<h3>로그인</h3>
+<div>
+    <form method="POST" action="">
+        {% csrf_token %}
+        <input type="text" size="20" name="username" required><br/>
+        <input type="password" size="20" name="password" required><br/>
+        <button type="submit">로그인</button>
+    </form>
+</div>
+{% endblock %}

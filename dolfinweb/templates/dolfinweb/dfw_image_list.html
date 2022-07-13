@@ -18,7 +18,8 @@
     <div class="row">
         {% for image in page_obj %}
             <div class="col">
-                <a href="{% url 'dfw_image_view' image.id %}"><img width="200" src="{{image.get_thumbnail_url}}"></a><br/>            
+                {% if user_obj%}<a href="{% url 'dfw_edit_finbox' image.id %}"><img width="200" src="{{image.get_thumbnail_url}}"></a><br/>{%else%}
+                <a href="{% url 'dfw_image_view' image.id %}"><img width="200" src="{{image.get_thumbnail_url}}"></a><br/>{%endif%}
             {{image.filename}} @{{image.exifdatetime|time:"H:i:s"}} ({{image.finboxes.count}})
         </div>
         {% endfor %}

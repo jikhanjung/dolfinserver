@@ -383,6 +383,7 @@ class DolfinBox {
 	set_coords(coords) {
 		this.coords = coords;
 		this.coord_input.value = String(this.get_coords());
+		this.image.setAttribute("src",'/dolfinweb/dfw_fin_image/{{image.id}}/'+String(this.get_coords()));
 	}
 
 	set_name(name) {
@@ -422,6 +423,16 @@ class DolfinBox {
 				this.delete_input.setAttribute("boxindex",a_idx)
 				this.delete_input.addEventListener("change", handleCheckboxChange, false);
 			}
+			this.image = document.getElementById("fin_image_"+String(a_idx));
+			console.log("idx",a_idx,"image",this.image);
+			if( this.image ) {
+				this.image.setAttribute("boxindex",a_idx)
+				this.image.addEventListener("click", handleFinImagClick, false);
+			}
+			if( this.image.getAttribute('src') == '') {
+
+				this.image.setAttribute("src",'/dolfinweb/dfw_fin_image/{{image.id}}/'+String(this.get_coords()));
+			}
 		}
 	}
 	show_temp_coords(){
@@ -457,6 +468,16 @@ class DolfinBox {
 		box_list[idx].visible=true;
 	}
 	draw();
+  }  
+
+  function handleFinImagClick(e){
+	console.log(e);
+	idx = this.getAttribute("boxindex");
+	console.log(idx);
+	selected_box = box_list[idx]
+	if( selected_box != null )
+		focusSelectedBox();
+	draw();
   }
 
     var box_list = [];
@@ -473,8 +494,9 @@ class DolfinBox {
 
         newForm.innerHTML = newForm.innerHTML.replace(/__prefix__/g, formNum);
         var container = document.getElementById("dolfinbox-form-container")
-        var newRow = container.insertRow();
-        newRow.classList.add("text-center");
+        var newRow = container.appendChild(document.createElement("div"));
+        //newRow.classList.add("text-center");
+		newRow.style = "font-size:14px";
         newRow.classList.add("dolfinbox-form");
         newRow.innerHTML = newForm.innerHTML;
         var totalForms = document.getElementById("id_finboxes-TOTAL_FORMS")
@@ -635,13 +657,13 @@ class DolfinBox {
 					context.closePath();
 				} else if( !curr_box.box_modify ) {
 					context.beginPath();
-					context.strokeStyle='rgba(0,0,0,1)';
+					context.strokeStyle='rgba(255,0,0,1)';
 					draw_rect(coords);
 					context.stroke();
 					context.closePath();
 				} else {
 					context.beginPath();
-					context.strokeStyle='rgba(0,0,0,1)';
+					context.strokeStyle='rgba(255,0,0,1)';
 					if( !curr_box.x1_selected ) draw_line([...coords], 'x1');
 					if( !curr_box.x2_selected ) draw_line([...coords], 'x2');
 					if( !curr_box.y1_selected ) draw_line([...coords], 'y1');
@@ -661,6 +683,7 @@ class DolfinBox {
         }
         if( drawing_box ) {
             context.beginPath();
+			context.strokeStyle='rgba(255,0,0,0.5)';
             [ draw_x1, draw_y1, draw_x2, draw_y2 ] = [ box_x1, box_y1, box_x2, box_y2 ];
             if( box_x1 > box_x2 ) { [draw_x1, draw_x2] = [box_x2,box_x1];}
             if( box_y1 > box_y2 ) { [draw_y1, draw_y2] = [box_y2,box_y1];}

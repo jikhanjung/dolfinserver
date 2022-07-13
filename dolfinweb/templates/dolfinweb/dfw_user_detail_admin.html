@@ -1,0 +1,26 @@
+{% extends "dfwbase.html" %}
+{% block content %}
+{% load django_bootstrap5 %}
+<h4 class="bd-title p-2 bg-secondary text-light">User Info</h4>
+<table class="table table-striped table-sm">
+    <tbody>
+    <tr><th>사용자ID</th><td>{{ user.username}}</td></tr>
+    <tr><th>이름</th><td>{{ user.last_name}}{{ user.first_name }}</td></tr>
+    <tr><th>이메일</th><td>{{ user.email }}</td></tr>
+    <tr><th>그룹</th><td>{% for g in user.groups.all %}{{g.name}} {%endfor%}</td></tr>
+    </tbody>
+</table>
+
+<div class="container">
+    <div class="row">
+        <div class="col text-center">
+            <a class="btn btn-primary" role="button" href="{% url 'dfw_user_edit_admin' user.id%}">Edit</a>
+            <button class="btn btn-primary" role="button" href="#" disabled>Change Password</button>
+            <!--a class="btn btn-primary" role="button" href="{% url 'user_change_password_admin' user.id%}">Change Password</a-->
+            <a class="btn btn-primary" role="button" href="{% url 'dfw_user_delete_admin' user.id%}">Delete</a>
+            <a class="btn btn-primary" role="button" href="{% url 'dfw_user_list_admin'%}">List</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

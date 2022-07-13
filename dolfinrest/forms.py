@@ -8,3 +8,7 @@ class DolfinBoxForm(ModelForm):
     class Meta:
         model = DolfinBox
         fields = ['dolfin_image','coords_str','boxname']
+        widgets = {
+            'boxname': forms.TextInput(attrs={'size': 15,'style':'font-size:14px'}),
+            'coords_str': forms.HiddenInput(attrs={'size': 20,'style':'font-size:14px'}),
+        }

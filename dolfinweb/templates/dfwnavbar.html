@@ -18,14 +18,11 @@
             {% if user_obj %}
             <a class="nav-link text-white dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{user_obj.username}}</a>
             <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{% url 'dfw_user_info' %}">내 정보</a></li>
+                <li><a class="dropdown-item" href="{% url 'dfw_user_logout' %}">로그아웃</a></li>
             </ul>
             {% else %}
-            <form method="POST" action="#">
-                {% csrf_token %}
-                <input type="text" size="10" name="username" required>
-                <input type="password" size="10" name="password" required>
-                <button type="submit">로그인</button>
-            </form>
+            <a class="nav-link text-white" href="{% url 'dfw_user_login' %}" id="navbarDropdown" role="button">Login</a>
             {% endif %}
           </li>
         </ul>

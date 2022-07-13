@@ -8,44 +8,59 @@
     <tr><th>촬영일시</th><td>{{ image.exifdatetime|default_if_none:''}}</td></tr>
     <tr><th>폴더이름</th><td>{{ image.dirname|default_if_none:''}}</td></tr>
     <tr>
-        <td colspan="2"><div class="text-center">
-            <canvas id="canvas" width="900" height="600"></canvas>
-            <div id="fin_list" class="container">
-            </div>
-        </div>
-        <form action="" method="post">
-            {% csrf_token %}
-            <table class="table table-striped mt-3">
-                <thead class="text-center"><tr><th>이름</th><th>Box좌표</th><th>삭제</th></tr></thead>
-                {% if dolfinbox_formset %}
-                    {{ dolfinbox_formset.management_form }}
-                    <tbody id="dolfinbox-form-container">
-                        <tr id="empty-form" style="display:none;">
-                            <td>{{dolfinbox_formset.empty_form.dolfin_image}}{{dolfinbox_formset.empty_form.boxname}}</td>
-                            <td>{{dolfinbox_formset.empty_form.coords_str}}</td>
-                            <td>{{dolfinbox_formset.empty_form.DELETE}}</td>
-                        </tr>
-                        {% for dolfinbox_form in dolfinbox_formset %}
-                        <tr class="dolfinbox-form text-center">
-                            <td>{{dolfinbox_form.id}}{{dolfinbox_form.dolfin_image}}{{dolfinbox_form.boxname}}</td>
-                            <td>{{dolfinbox_form.coords_str}}</td>
-                            <td>{{dolfinbox_form.DELETE}}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                {% endif %}
-                <tfoot><tr><td colspan="6">
-                    <div class="container text-center">
-                        {% bootstrap_button "Save" button_type="submit" button_class="btn-primary" %}
-                    </div>
-                </td></tr></tfoot>
+        <td colspan="2">
+            <table class="table text-center">
+            <tr><td width="900">
+                <div class="text-center">
+                <canvas id="canvas" width="900" height="600"></canvas>
+                </div>
+            </td><td width="300" class="align-top">
+                <form action="" method="post">
+                    {% csrf_token %}
+                        {% if dolfinbox_formset %}
+                            {{ dolfinbox_formset.management_form }}
+                            <div id="dolfinbox-form-container" class="text-center" style="height:550px;overflow:auto;">
+                                <div id="empty-form" style="display:none;font-size:14px;">
+                                    <div><img src="" id="fin_image___prefix__"></div>
+                                    {{dolfinbox_formset.empty_form.dolfin_image}}
+                                    {{dolfinbox_formset.empty_form.boxname}}
+                                    {{dolfinbox_formset.empty_form.coords_str}}
+                                    {{dolfinbox_formset.empty_form.DELETE}}<nobr>삭제</nobr>
+                                </div>
+                                {% for dolfinbox_form in dolfinbox_formset %}
+                                <div class="dolfinbox-form" style="font-size:14px;">
+                                    <div><img src="{% url 'dfw_fin_image' dolfinbox_form.dolfin_image.value dolfinbox_form.id.value%}" id="fin_image_{{forloop.counter0}}"></div>
+                                    <div>{{dolfinbox_form.id}}{{dolfinbox_form.dolfin_image}}
+                                    {{dolfinbox_form.boxname}}
+                                    {{dolfinbox_form.coords_str}}
+                                    {{dolfinbox_form.DELETE}}<nobr>삭제</nobr></div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div>No fin information yet.</div>
+                        {% endif %}
+                            <div class="container text-center">
+                                <br/>
+                                {% bootstrap_button "Save" button_type="submit" button_class="btn-info text-white" %}
+                            </div>
+                </form>
+            </td></tr>
             </table>
-        </form>
-        
         </td>
     </tr>
     </tbody>    
-<tfoot><tr><td colspan="2"></td></tr></tfoot>
+<tfoot><tr><td colspan="2"><div class="row">
+    <div class="col text-center">
+        {%if prev_image%}<a class="btn btn-info text-white" role="button" href="{% url 'dfw_edit_finbox' prev_image.id%}">&lt;</a>{%endif%}
+        <a class="btn btn-info text-white" role="button" href="{% url last_list obs_date%}?page={{page_number}}">목록</a>
+        {%if next_image%}<a class="btn btn-info text-white" role="button" href="{% url 'dfw_edit_finbox' next_image.id%}">&gt;</a>{%endif%}
+    </div>
+    <!--div class="col text-end">
+        <a class="btn btn-info text-white" role="button" href="{% url 'dfw_edit_finbox' image.id %}">Fin 편집</a>
+    </div-->
+</div></td></tr></tfoot>
+
 </table>
 <script>
     {% if finid %}var finid = {{finid}};{%endif%}

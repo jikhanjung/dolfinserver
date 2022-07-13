@@ -1,0 +1,13 @@
+{% extends "dfwbase.html" %}
+{% block content %}
+{% load django_bootstrap5 %}
+<h4 class="bd-title p-2 bg-secondary text-light">User Info</h4>
+<form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <table class="table table-striped">
+    {{ form }}
+    </table>
+    <div class="container text-center">{% bootstrap_button "Save" button_type="submit" button_class="btn-primary btn-lg" %}</div>
+</form>
+{% endblock %}
+
