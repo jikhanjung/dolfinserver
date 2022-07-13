@@ -9,6 +9,17 @@
                     {{ page_obj.start_index }}-{{ page_obj.end_index }} out of {{ page_obj.paginator.count }} 
                 </div>
                 <div class="col text-end">
+                    <form method="POST" action="{% url 'dfw_image_list' obs_date%}">
+                        {% csrf_token %}
+                        <select name="obs_date" id="obs_date">
+                            {% for o_date in obs_date_list %}
+                                <option value="{{o_date.observation_date|date:'Y-m-d'}}" {% if o_date.get_formatted_date == obs_date %}selected{%endif%}>{{o_date.observation_date}}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="radio" name="filter1" value="all" {% if filter1 == 'all' or filter1 == '' %}checked{%endif%}>전체
+                        <input type="radio" name="filter1" value="no_fins" {% if filter1 == 'no_fins'%}checked{%endif%}>No fins
+                        <button type="submit">검색</button>
+                    </form>
                 </div>
             </div>
         </td></tr>

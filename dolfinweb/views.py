@@ -17,8 +17,9 @@ from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.cache import never_cache
 
-LOGIN_URL = 'user_login'
+LOGIN_URL = 'dfw_user_login'
 ITEMS_PER_PAGE = 20
 
 # Create your views here.
@@ -65,14 +66,27 @@ def dfw_date_list(request):
     page_obj = paginator.get_page(page_number)
     return render(request, 'dolfinweb/dfw_date_list.html', {'date_list': date_list, 'page_obj': page_obj, 'user_obj': user_obj, 'selected_date':selected_date})
 
+@never_cache
 def dfw_image_list(request, obs_date):
     user_obj = get_user_obj( request )
+    get_obs_date = request.POST.get('obs_date','')
+    if get_obs_date != '':
+        obs_date = get_obs_date
 
+    filter1 = request.POST.get('filter1','all')
+    
     image_list = DolfinImage.objects.filter(exifdatetime__date=obs_date)
+
+    if filter1 == 'no_fins':
+        #print("filter1 on: no fins")
+        image_list = image_list.filter(finbox_count=0)
+    #print(image_list)
+
     paginator = Paginator(image_list, ITEMS_PER_PAGE) # Show ITEMS_PER_PAGE contacts per page.
     page_number = request.GET.get('page',1)
     page_obj = paginator.get_page(page_number)
     image_id_list = [ img.id for img in page_obj ]
+    obs_date_list = DolfinDate.objects.all()
 
     request.session['obs_date'] = obs_date
     request.session['page_number'] = page_number
@@ -80,10 +94,19 @@ def dfw_image_list(request, obs_date):
     request.session['image_id_list'] = image_id_list
     print("page_number in image_list:", page_number)
 
-    return render(request, 'dolfinweb/dfw_image_list.html', {'image_list': image_list, 'page_obj': page_obj, 'user_obj': user_obj, 'obs_date':obs_date })
+    context = {
+        'image_list': image_list, 
+        'page_obj': page_obj, 
+        'user_obj': user_obj, 
+        'obs_date':obs_date, 
+        'obs_date_list': obs_date_list,
+        'filter1': filter1,
+    }
+
+    return render(request, 'dolfinweb/dfw_image_list.html', context)
 
 
-def get_prev_next_image_and_page(a_image,a_image_id_list):
+def _get_prev_next_image_and_page(a_image,a_image_id_list):
     next_image_set = DolfinImage.objects.filter(exifdatetime__gte=a_image.exifdatetime,filename__gt=a_image.filename).order_by("exifdatetime","filename")
     prev_image_set = DolfinImage.objects.filter(exifdatetime__lte=a_image.exifdatetime,filename__lt=a_image.filename).order_by("-exifdatetime","-filename")
     next_image = None
@@ -146,7 +169,7 @@ def dfw_image_view(request, pk):
     #print("page_number:",page_number)
     #if last_list == 'dfw_image_list':
     image_id_list = request.session['image_id_list']
-    prev_image, next_image, page_number_diff = get_prev_next_image_and_page(image,image_id_list)
+    prev_image, next_image, page_number_diff = _get_prev_next_image_and_page(image,image_id_list)
     #if page_number != request.session['page_number']:
     if page_number_diff != 0 :
         page_number += page_number_diff
@@ -168,6 +191,7 @@ def dfw_image_view(request, pk):
 
     return render(request, 'dolfinweb/dfw_image_view.html', context)
 
+@login_required(login_url=LOGIN_URL)
 def dfw_edit_finbox(request, pk, finid=None):
     user_obj = get_user_obj( request )
     #if( finid ):
@@ -182,7 +206,7 @@ def dfw_edit_finbox(request, pk, finid=None):
     #print("page_number:",page_number)
     #if last_list == 'dfw_image_list':
     image_id_list = request.session['image_id_list']
-    prev_image, next_image, page_number_diff = get_prev_next_image_and_page(image,image_id_list)
+    prev_image, next_image, page_number_diff = _get_prev_next_image_and_page(image,image_id_list)
     #if page_number != request.session['page_number']:
     if page_number_diff != 0 :
         page_number += page_number_diff
@@ -202,10 +226,15 @@ def dfw_edit_finbox(request, pk, finid=None):
             boxset = dolfinbox_formset.save(commit=False)
             for box in boxset:
                 box.exifdatetime = image.exifdatetime
+                print("box id:",box.id)
+                if box.id is None:
+                    box.created_by = user_obj.username
+                box.modified_by = user_obj.username
                 box.save()
             for delete_value in dolfinbox_formset.deleted_objects:
                 delete_value.delete()
             image.update_thumbnail()
+            image.count_finboxes()
             image.save()
 
         else:
@@ -255,6 +284,7 @@ def dfw_fin_list(request, obs_date):
 
     return render(request, 'dolfinweb/dfw_fin_list.html', context)
 
+@never_cache
 def dfw_fin_image(request, img_id, fin_id_or_coords_str):
 
     coords = [ int(x) for x in fin_id_or_coords_str.split(",") ]

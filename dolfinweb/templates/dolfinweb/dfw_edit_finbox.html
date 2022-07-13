@@ -25,7 +25,7 @@
                                     {{dolfinbox_formset.empty_form.dolfin_image}}
                                     {{dolfinbox_formset.empty_form.boxname}}
                                     {{dolfinbox_formset.empty_form.coords_str}}
-                                    {{dolfinbox_formset.empty_form.DELETE}}<nobr>삭제</nobr>
+                                    <nobr>{{dolfinbox_formset.empty_form.DELETE}}삭제</nobr>
                                 </div>
                                 {% for dolfinbox_form in dolfinbox_formset %}
                                 <div class="dolfinbox-form" style="font-size:14px;">
@@ -33,7 +33,7 @@
                                     <div>{{dolfinbox_form.id}}{{dolfinbox_form.dolfin_image}}
                                     {{dolfinbox_form.boxname}}
                                     {{dolfinbox_form.coords_str}}
-                                    {{dolfinbox_form.DELETE}}<nobr>삭제</nobr></div>
+                                    <nobr>{{dolfinbox_form.DELETE}}삭제</nobr></div>
                                 </div>
                                 {% endfor %}
                             </div>
@@ -52,9 +52,9 @@
     </tbody>    
 <tfoot><tr><td colspan="2"><div class="row">
     <div class="col text-center">
-        {%if prev_image%}<a class="btn btn-info text-white" role="button" href="{% url 'dfw_edit_finbox' prev_image.id%}">&lt;</a>{%endif%}
+        {%if prev_image%}<a class="btn btn-info text-white" role="button" id="prev" href="{% url 'dfw_edit_finbox' prev_image.id%}">&lt;</a>{%endif%}
         <a class="btn btn-info text-white" role="button" href="{% url last_list obs_date%}?page={{page_number}}">목록</a>
-        {%if next_image%}<a class="btn btn-info text-white" role="button" href="{% url 'dfw_edit_finbox' next_image.id%}">&gt;</a>{%endif%}
+        {%if next_image%}<a class="btn btn-info text-white" role="button" id="next" href="{% url 'dfw_edit_finbox' next_image.id%}">&gt;</a>{%endif%}
     </div>
     <!--div class="col text-end">
         <a class="btn btn-info text-white" role="button" href="{% url 'dfw_edit_finbox' image.id %}">Fin 편집</a>
@@ -74,6 +74,34 @@
     {% endif %}
     {% include "dolfinweb/dfw_finbox.js" %}
     editable = true;
+
+
+    document.onkeydown = checkKey;
+    function checkKey(e) {
+    
+        e = e || window.event;
+    
+        if (e.keyCode == '38') {
+            // up arrow
+        }
+        else if (e.keyCode == '40') {
+            // down arrow
+        }
+        else if (e.keyCode == '37') {
+            prev_a = document.getElementById('prev');
+            url = prev_a.getAttribute('href');
+            window.location.href = url;
+            //console.log(url);
+           // left arrow
+        }
+        else if (e.keyCode == '39') {
+            next_a = document.getElementById('next');
+            url = next_a.getAttribute('href');
+            window.location.href = url;
+            //console.log(url);
+           // right arrow
+        }
+    }
 </script>
 {% endblock %}
 

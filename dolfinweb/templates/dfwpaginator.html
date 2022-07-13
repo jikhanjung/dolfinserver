@@ -3,7 +3,7 @@
     <span class="step-links">
         {% if page_obj.has_previous %}
             <a class="btn btn-info text-white btn-sm" role="button" href="?page=1{%if order_by%}&order_by={{order_by}}{%endif%}{%if filter1%}&filter1={{filter1}}{%endif%}{%if filter2%}&filter2={{filter2}}{%endif%}">처음</a>
-            <a class="btn btn-info text-white btn-sm" role="button" href="?page={{ page_obj.previous_page_number }}{%if order_by%}&order_by={{order_by}}{%endif%}{%if filter1%}&filter1={{filter1}}{%endif%}{%if filter2%}&filter2={{filter2}}{%endif%}">이전</a>
+            <a class="btn btn-info text-white btn-sm" role="button" id="prev" href="?page={{ page_obj.previous_page_number }}{%if order_by%}&order_by={{order_by}}{%endif%}{%if filter1%}&filter1={{filter1}}{%endif%}{%if filter2%}&filter2={{filter2}}{%endif%}">이전</a>
         {%else%}
             <button class="btn btn-secondary text-white btn-sm" role="button" href="#" disabled>처음</button>
             <button class="btn btn-secondary text-white btn-sm" role="button" href="#" disabled>이전</button>
@@ -14,7 +14,7 @@
         </span>
 
         {% if page_obj.has_next %}
-            <a class="btn btn-info text-white btn-sm" role="button" href="?page={{ page_obj.next_page_number }}{%if order_by%}&order_by={{order_by}}{%endif%}{%if filter1%}&filter1={{filter1}}{%endif%}{%if filter2%}&filter2={{filter2}}{%endif%}">다음</a>
+            <a class="btn btn-info text-white btn-sm" id="next" role="button" href="?page={{ page_obj.next_page_number }}{%if order_by%}&order_by={{order_by}}{%endif%}{%if filter1%}&filter1={{filter1}}{%endif%}{%if filter2%}&filter2={{filter2}}{%endif%}">다음</a>
             <a class="btn btn-info text-white btn-sm" role="button" href="?page={{ page_obj.paginator.num_pages }}{%if order_by%}&order_by={{order_by}}{%endif%}{%if filter1%}&filter1={{filter1}}{%endif%}{%if filter2%}&filter2={{filter2}}{%endif%}">마지막</a>
         {%else%}
             <button class="btn btn-secondary text-white btn-sm" role="button" href="#" disabled>다음</button>
@@ -22,4 +22,32 @@
         {% endif %}
     </span>
 </div>
+<script>
+    document.onkeydown = checkKey;
+    function checkKey(e) {
+    
+        e = e || window.event;
+    
+        if (e.keyCode == '38') {
+            // up arrow
+        }
+        else if (e.keyCode == '40') {
+            // down arrow
+        }
+        else if (e.keyCode == '37') {
+            prev_a = document.getElementById('prev');
+            url = prev_a.getAttribute('href');
+            window.location.href = url;
+            //console.log(url);
+           // left arrow
+        }
+        else if (e.keyCode == '39') {
+            next_a = document.getElementById('next');
+            url = next_a.getAttribute('href');
+            window.location.href = url;
+            //console.log(url);
+           // right arrow
+        }
+    }
+    </script>
 {% endif %}

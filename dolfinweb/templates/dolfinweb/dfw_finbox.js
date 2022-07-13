@@ -413,14 +413,17 @@ class DolfinBox {
 			if( this.coord_input )
 				this.coord_input.value = String(this.get_coords());
 			this.name_input = document.getElementById("id_finboxes-"+String(a_idx)+"-boxname");
-			if( this.name_input )
+			if( this.name_input ) {
 				this.name_input.value = this.boxname;
+				this.name_input.addEventListener("keydown", handleInputKeydown, false);
+			}
+
 			this.color_input = document.getElementById("id_finboxes-"+String(a_idx)+"-boxcolor");
 			if( this.color_input )
 				this.color_input.value = this.boxcolor;
 			this.delete_input = document.getElementById("id_finboxes-"+String(a_idx)+"-DELETE");
 			if( this.delete_input ) {
-				this.delete_input.setAttribute("boxindex",a_idx)
+				this.delete_input.setAttribute("boxindex",a_idx);
 				this.delete_input.addEventListener("change", handleCheckboxChange, false);
 			}
 			this.image = document.getElementById("fin_image_"+String(a_idx));
@@ -470,10 +473,18 @@ class DolfinBox {
 	draw();
   }  
 
+  function handleInputKeydown(e){
+	//console.log("keydown",e);
+	e.stopPropagation();
+	//idx = this.getAttribute("boxindex");
+	//console.log(idx);
+	//draw();
+  }  
+
   function handleFinImagClick(e){
-	console.log(e);
+	//console.log(e);
 	idx = this.getAttribute("boxindex");
-	console.log(idx);
+	//console.log(idx);
 	selected_box = box_list[idx]
 	if( selected_box != null )
 		focusSelectedBox();

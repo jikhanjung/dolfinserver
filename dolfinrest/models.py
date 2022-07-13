@@ -10,6 +10,10 @@ class DolfinDate(models.Model):
     last_modified = models.DateTimeField(auto_now=True)
     class Meta:
         ordering = ["observation_date"]
+    @property
+    def get_formatted_date(self):
+        return self.observation_date.strftime("%Y-%m-%d")
+        
 
 def upload_path(instance, filename): 
     # return f'posts/{instance.content}/{filename}'
@@ -32,6 +36,7 @@ class DolfinImage(models.Model):
     #imagefile = models.ImageField(upload_to ='%Y/%m/%d/')
     imagefile = models.ImageField(upload_to=upload_path)
     dirname = models.CharField(max_length=200, blank=True, default='')
+    finbox_count = models.IntegerField(default=0)
 
     class Meta:
         ordering = ["exifdatetime","filename"]
@@ -90,6 +95,10 @@ class DolfinImage(models.Model):
         res_img.save(thumbnail_path)
         #generate thumbnail        
 
+    def count_finboxes(self):
+        self.finbox_count = self.finboxes.all().count()
+
+
 class DolfinUser(AbstractUser):
     firstname = models.CharField( max_length=50, blank=True, null=True,verbose_name=u'이름')
     lastname = models.CharField( max_length=50, blank=True, null=True,verbose_name=u'성')
@@ -109,9 +118,9 @@ class DolfinBox(models.Model):
     boxcolor = models.CharField(max_length=20,blank=True,null=True,default='')
     exifdatetime = models.DateTimeField(blank=True,null=True)
     created_on = models.DateTimeField(blank=True,null=True,auto_now_add=True)
-    created_by = models.CharField(max_length=20,blank=True,null=True,default='')
+    created_by = models.CharField(max_length=50,blank=True,null=True,default='')
     modified_on = models.DateTimeField(blank=True,null=True,auto_now=True)
-    modified_by = models.CharField(max_length=20,blank=True,null=True,default='')
+    modified_by = models.CharField(max_length=50,blank=True,null=True,default='')
     
     class Meta:
         ordering = ["exifdatetime","id"]

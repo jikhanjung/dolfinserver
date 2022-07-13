@@ -17,9 +17,9 @@
     </tbody>    
 <tfoot><tr><td colspan="2"><div class="row">
     <div class="col text-center">
-        {%if prev_image%}<a class="btn btn-info text-white btn-sm" role="button" href="{% url 'dfw_image_view' prev_image.id%}">&lt;</a>{%endif%}
+        {%if prev_image%}<a class="btn btn-info text-white btn-sm" role="button" id="prev" href="{% url 'dfw_image_view' prev_image.id%}">&lt;</a>{%endif%}
         <a class="btn btn-info text-white btn-sm" role="button" href="{% url last_list obs_date%}?page={{page_number}}">목록</a>
-        {%if next_image%}<a class="btn btn-info text-white btn-sm" role="button" href="{% url 'dfw_image_view' next_image.id%}">&gt;</a>{%endif%}
+        {%if next_image%}<a class="btn btn-info text-white btn-sm" role="button" id="next" href="{% url 'dfw_image_view' next_image.id%}">&gt;</a>{%endif%}
     </div>
     <!--div class="col text-end">
         <a class="btn btn-info text-white btn-sm" role="button" href="{% url 'dfw_edit_finbox' image.id %}">Fin 편집</a>
@@ -34,6 +34,33 @@
     {% endfor %} ]
     {% endif %}
     {% include "dolfinweb/dfw_finbox.js" %}
+
+    document.onkeydown = checkKey;
+    function checkKey(e) {
+    
+        e = e || window.event;
+    
+        if (e.keyCode == '38') {
+            // up arrow
+        }
+        else if (e.keyCode == '40') {
+            // down arrow
+        }
+        else if (e.keyCode == '37') {
+            prev_a = document.getElementById('prev');
+            url = prev_a.getAttribute('href');
+            window.location.href = url;
+            //console.log(url);
+           // left arrow
+        }
+        else if (e.keyCode == '39') {
+            next_a = document.getElementById('next');
+            url = next_a.getAttribute('href');
+            window.location.href = url;
+            //console.log(url);
+           // right arrow
+        }
+    }
 </script>
 {% endblock %}
 
