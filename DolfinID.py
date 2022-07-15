@@ -352,7 +352,7 @@ class DolfinIDWindow(QMainWindow, form_class):
                 #print("dirname:",dirname)
 
         hostname = '192.168.55.223'
-        hostname = '127.0.0.1'
+        #hostname = '127.0.0.1'
 
         get_url = "http://{}:8000/dolfinrest/dolfinimage_detail_md5hash/{}/{}/".format(hostname,record.md5hash,record.name)
         print(get_url)
