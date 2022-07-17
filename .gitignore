@@ -6,3 +6,4 @@ uploads/*
 scripts/json/*
 log.txt
 dolfinid.db
+dolfinsync.db

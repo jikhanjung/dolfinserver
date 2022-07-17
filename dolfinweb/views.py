@@ -19,6 +19,7 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
 
+
 LOGIN_URL = 'dfw_user_login'
 ITEMS_PER_PAGE = 20
 

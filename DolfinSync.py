@@ -23,10 +23,17 @@ from datetime import datetime
 import time
 import io
 
-PROGRAM_NAME = "DolfinID"
+PROGRAM_NAME = "DolfinSync"
 PROGRAM_VERSION = "0.0.1"
 
-db = SqliteDatabase('dolfinid.db')
+DEFAULT_IP_ADDRESS = "222.233.253.74"
+DEFAULT_PORT = "8000"
+
+RET_ALREADY_EXIST = 1
+RET_UPLOAD_SUCCESS = 2
+RET_UPLOAD_ERROR = 3
+
+db = SqliteDatabase('dolfinsync.db')
 
 class DolfinImageFile(Model):
     path = CharField()
@@ -56,25 +63,28 @@ class PreferencesDialog(QDialog):
     def __init__(self,parent):
         super().__init__()
         self.setGeometry(QRect(100, 100, 400, 300))
-        self.setWindowTitle("Preferences")
+        self.setWindowTitle("설정")
         #self.lbl_main_view.setMinimumSize(400, 300)
 
         self.parent = parent
         self.lblServerAddress = QLabel()
         self.edtServerAddress = QLineEdit()
+        self.edtServerPort = QLineEdit()
         self.lblDataFolder = QLabel()
         self.edtDataFolder = QLineEdit()
 
+        self.edtServerPort.setFixedWidth(50)
+
         self.btnDataFolder = QPushButton()
-        self.btnDataFolder.setText("Select Folder")
+        self.btnDataFolder.setText("선택")
         self.btnDataFolder.clicked.connect(self.select_folder)
 
         self.btnOkay = QPushButton()
-        self.btnOkay.setText("OK")
+        self.btnOkay.setText("확인")
         self.btnOkay.clicked.connect(self.Okay)
 
         self.btnCancel = QPushButton()
-        self.btnCancel.setText("Cancel")
+        self.btnCancel.setText("취소")
         self.btnCancel.clicked.connect(self.Cancel)
 
 
@@ -82,37 +92,45 @@ class PreferencesDialog(QDialog):
         self.layout1 = QHBoxLayout()
         self.layout1.addWidget(self.lblServerAddress)
         self.layout1.addWidget(self.edtServerAddress)
-        self.layout2 = QHBoxLayout()
-        self.layout2.addWidget(self.lblDataFolder)
-        self.layout2.addWidget(self.edtDataFolder)
-        self.layout2.addWidget(self.btnDataFolder)
+        self.layout1.addWidget(self.edtServerPort)
         self.layout3 = QHBoxLayout()
-        self.layout3.addWidget(self.btnOkay)
-        self.layout3.addWidget(self.btnCancel)
+        self.layout3.addWidget(self.lblDataFolder)
+        self.layout3.addWidget(self.edtDataFolder)
+        self.layout3.addWidget(self.btnDataFolder)
+        self.layout4 = QHBoxLayout()
+        self.layout4.addWidget(self.btnOkay)
+        self.layout4.addWidget(self.btnCancel)
         self.layout.addLayout(self.layout1)
-        self.layout.addLayout(self.layout2)
+        #self.layout.addLayout(self.layout2)
         self.layout.addLayout(self.layout3)
+        self.layout.addLayout(self.layout4)
         self.setLayout(self.layout)
         self.server_address = ''
+        self.server_port = ''
         self.data_folder = ''
         #print("pref dlg data_folder:", self.data_folder)
         self.read_settings()
         #print("pref dlg data_folder:", self.data_folder)
-        self.lblServerAddress.setText("Dolfin ID Prefix")
-        self.lblDataFolder.setText("Data Folder")
-        self.edtServerAddress.setText("")
+        self.lblServerAddress.setText("서버 주소")
+        #self.lblServerPort.setText("Server Port")
+        self.lblDataFolder.setText("사진 위치")
+
         self.edtDataFolder.setText(str(self.data_folder.resolve()))
+        self.edtServerAddress.setText(self.server_address)
+        self.edtServerPort.setText(self.server_port)
 
     def write_settings(self):
         self.parent.server_address = self.edtServerAddress.text()
+        self.parent.server_port = self.edtServerPort.text()
         self.parent.data_folder = Path(self.edtDataFolder.text())
-        #print( self.parent.dolfinid_prefix, self.parent.data_folder)
+        #print( self.parent.server_address,self.parent.server_port, self.parent.data_folder)
 
     def read_settings(self):
         self.server_address = self.parent.server_address
+        self.server_port = self.parent.server_port
         self.data_folder = self.parent.data_folder.resolve()
-        print("pref dlg data folder:", self.data_folder)
-        print("pref dlg server address:", self.server_address)
+        #print("pref dlg data folder:", self.data_folder)
+        #print("pref dlg server address:", self.server_address)
 
     def Okay(self):
         self.write_settings()
@@ -122,7 +140,7 @@ class PreferencesDialog(QDialog):
         self.close()
 
     def select_folder(self):
-        folder = str(QFileDialog.getExistingDirectory(self, "Select Folder", str(self.data_folder)))
+        folder = str(QFileDialog.getExistingDirectory(self, "폴더 선택", str(self.data_folder)))
         if folder:
             self.data_folder = Path(folder).resolve()
             self.edtDataFolder.setText(folder)
@@ -132,12 +150,12 @@ class ProgressDialog(QDialog):
         super().__init__()
         #self.setupUi(self)
         self.lbl_text = QLabel(self)
-        self.lbl_text.setGeometry(100, 50, 300, 20)
+        self.lbl_text.setGeometry(50, 50, 320, 80)
         #self.pb_progress = QProgressBar(self)
         self.pb_progress = QProgressBar(self)
-        self.pb_progress.setGeometry(50, 120, 320, 40)
+        self.pb_progress.setGeometry(50, 150, 320, 40)
         self.pb_progress.setValue(0)
-        self.setGeometry(600, 400, 400, 210)
+        self.setGeometry(200, 200, 400, 250)
 
     def set_progress_text(self,text_format):
         self.text_format = text_format
@@ -155,8 +173,8 @@ class ProgressDialog(QDialog):
     
 
 
-form_class = uic.loadUiType("DolfinID.ui")[0]
-class DolfinIDWindow(QMainWindow, form_class):
+form_class = uic.loadUiType("DolfinSync.ui")[0]
+class DolfinSyncWindow(QMainWindow, form_class):
 
     def check_db(self):
         db.connect()
@@ -192,9 +210,32 @@ class DolfinIDWindow(QMainWindow, form_class):
 
         self.btnReadTree.clicked.connect(self.btnReadTreeClicked)
         self.btnLoadTree.clicked.connect(self.btnLoadTreeClicked)
+        self.btnLoadTree.hide()
         self.btnSendImage.clicked.connect(self.btnSendImageClicked)
         self.btnSendAll.clicked.connect(self.btnSendAllClicked)
+        self.btnOpenFolder.clicked.connect(self.select_folder)
         #self.data_folder = Path('.')
+
+        self.reset_views()
+
+        self.dir_record_tree = []
+        self.file_record_hash = {}
+        self.dir_list = []
+        self.file_list = []
+        if self.data_folder != '':
+            self.load_dir()
+            self.edtDataFolder.setText(str(self.data_folder))
+        self.setWindowTitle("DolfinSync")
+
+    def select_folder(self):
+        folder = str(QFileDialog.getExistingDirectory(self, "폴더 선택", str(self.data_folder)))
+        if folder:
+            self.data_folder = Path(folder).resolve()
+            self.edtDataFolder.setText(folder)
+            self.reset_database()
+
+    def reset_views(self):
+
         self.dir_model = QStandardItemModel()
         self.file_model = QStandardItemModel()
         self.file_model.setColumnCount(2)
@@ -209,7 +250,6 @@ class DolfinIDWindow(QMainWindow, form_class):
         self.tableView.verticalHeader().setDefaultSectionSize(15)
         #self.tableView.hideColumn(1)
 
-
         self.treeView.setHeaderHidden( True )
         self.tableView.horizontalHeader().hide()
         self.tableView.verticalHeader().hide()
@@ -222,11 +262,6 @@ class DolfinIDWindow(QMainWindow, form_class):
         #self.fileSelModel.selectionChanged.connect(self.fileSelectionChanged)
         self.fileSelModel = self.tableView.selectionModel()
         self.fileSelModel.selectionChanged.connect(self.fileSelectionChanged)
-
-        self.dir_record_tree = []
-        self.file_record_hash = {}
-        self.dir_list = []
-        self.file_list = []
 
     def fileSelectionChanged(self):
         #print(self.tableView.rowHeight(3))
@@ -314,12 +349,12 @@ class DolfinIDWindow(QMainWindow, form_class):
 
     def get_selected_file(self):
         index = self.tableView.currentIndex()
-        print(index)
+        #print(index)
 
         selected_index_list = self.fileSelModel.selection().indexes()
         if len(selected_index_list) == 0:
             return
-        print("selected_index",selected_index_list)
+        #print("selected_index",selected_index_list)
 
         new_index_list = []
         model = selected_index_list[0].model()
@@ -327,15 +362,16 @@ class DolfinIDWindow(QMainWindow, form_class):
             for index in selected_index_list:
                 new_index = model.mapToSource(index)
                 new_index_list.append(new_index)
-        print("new_index_list",new_index_list)
+        #print("new_index_list",new_index_list)
         item_text_list = []
         for index in new_index_list:
             item = self.file_model.itemFromIndex(index)
-            print("item_text:",item.text())
+            #print("item_text:",item.text())
             item_text_list.append(item.text())
         filepath = item_text_list[1]
         filename = item_text_list[0]
         return filepath, filename
+
 
     def upload_file(self,record):
         fullpath = record.path
@@ -351,18 +387,19 @@ class DolfinIDWindow(QMainWindow, form_class):
                 break
                 #print("dirname:",dirname)
 
-        hostname = '192.168.55.223'
+        hostname = self.server_address
+        portnumber = self.server_port
         #hostname = '127.0.0.1'
 
-        get_url = "http://{}:8000/dolfinrest/dolfinimage_detail_md5hash/{}/{}/".format(hostname,record.md5hash,record.name)
-        print(get_url)
+        get_url = "http://{}:{}/dolfinrest/dolfinimage_detail_md5hash/{}/{}/".format(hostname,portnumber,record.md5hash,record.name)
+        #print(get_url)
         response = requests.get(get_url)
-        print(response.status_code)
+        #print(response.status_code)
         if int( response.status_code / 100 ) == 2:
             record.uploaded = True
             record.save()
-            print('retrieve success. returning.')
-            return
+            #print('retrieve success. returning.')
+            return RET_ALREADY_EXIST
 
 
         data_hash = {'filename':record.name,'md5hash':record.md5hash,'exifdatetime':record.exifdatetime, 'dirname':dirname}
@@ -373,24 +410,122 @@ class DolfinIDWindow(QMainWindow, form_class):
         #print(fields)
 
         #post_url = "http://222.233.253.74:8000/dolfinrest/dolfinimage_list/"
-        post_url = "http://{}:8000/dolfinrest/dolfinimage_list/".format(hostname)
+        post_url = "http://{}:{}/dolfinrest/dolfinimage_list/".format(hostname,portnumber)
 
         #print(requests.Request('POST', post_url, files=file_hash, data=data_hash).prepare().body)
         response = requests.post(post_url, files=file_hash,data=data_hash)
         
+        if int( response.status_code / 100 ) == 2:
         #log = open("log.txt","w")
         #log.write(str(response.json()))
         #log.close()
-        print(response)
+        #print(response)
         #print(response.json())
-        record.uploaded = True
-        record.save()
+            record.uploaded = True
+            record.save()
+            return RET_UPLOAD_SUCCESS
+        elif int( response.status_code / 100 ) == 5:
+            record.uploaded = False
+            record.save()
+            return RET_UPLOAD_ERROR
         
+    def reset_database(self):
+        with db.atomic() as txn:
+            q = DolfinImageFile.delete()
+            q.execute()
+        self.reset_views()        
+        self.dir_list = []
+        self.file_list = []
+
+    def build_index(self):
+        print("reading tree", datetime.now())
+        rootdir = self.data_folder
+
+        if self.cbxResetIndex.isChecked():
+            self.reset_database()
+
+        self.setRootdir(rootdir)
+        #fd = open("output.log","w")
+        print("checking database", datetime.now())
+        dir_hash = {}
+        #rec_list = [ self.dir_list, ]
+        total_count = len(self.temp_dir_list) + len(self.temp_file_list)
+        current_count = 0
+
+        self.progress_dialog = ProgressDialog()
+        self.progress_dialog.setModal(True)
+        label_text = "Indexing image files {} of {} from folder \n{}...".format(current_count,total_count,rootdir)
+        self.progress_dialog.lbl_text.setText(label_text)
+        self.progress_dialog.pb_progress.setValue(0)
+        self.progress_dialog.show()
+
+        with db.atomic() as txn:
+            for list in [ self.temp_dir_list, self.temp_file_list ]:
+                for entry_hash in list:
+                    current_count += 1
+                    if current_count % 100 == 0:
+                        print( current_count, "out of", total_count, "loaded.")
+                    #print(f)
+                    self.progress_dialog.pb_progress.setValue(int((current_count/float(total_count))*100))
+                    label_text = "Indexing image files {} of {} from folder \n{}..".format(current_count, total_count,rootdir)
+                    self.progress_dialog.lbl_text.setText(label_text)
+                    self.progress_dialog.update()
+                    QApplication.processEvents()
+                    
+                    fullpath = Path(entry_hash['path'])
+                    #stem = fullpath.stem
+                    fname = fullpath.name
+                    rec_image0 = DolfinImageFile.get_or_none( path=str(fullpath.as_posix()) )
+                    if not rec_image0:
+                        file_info = self.get_file_info(fullpath)
+                        #print(file_info)
+                        if str(fullpath.parent.as_posix()) in dir_hash.keys():
+                            parent = dir_hash[str(fullpath.parent.as_posix())]
+                            #print(fullpath.parent)
+                        else:
+                            parent = None
+
+                        rec_image = DolfinImageFile()
+                        #print("rec_image:",rec_image)
+                        rec_image.path = str(fullpath.as_posix())
+                        rec_image.type = file_info['type']
+                        rec_image.name = fname
+                        rec_image.file_created = file_info['ctime']
+                        rec_image.file_modified = file_info['mtime']
+                        if file_info['type'] == 'file':
+                            rec_image.size = file_info['size']
+                            rec_image.md5hash = file_info['md5hash']
+                            rec_image.uploaded = False
+                            rec_image.exifdatetime = file_info['exifdatetime']
+                            rec_image.parent=parent
+                        elif file_info['type'] == 'dir':
+                            rec_image.size = entry_hash['size']
+                            rec_image.exifdatetime = file_info['ctime']
+                            rec_image.md5hash = ''
+                            rec_image.uploaded = False
+                            rec_image.parent=parent
+                        #print("rec_image:",rec_image)
+
+                        rec_image.save()
+                        if file_info['type'] == 'dir':
+                            dir_hash[str(fullpath.as_posix())] = rec_image
+                            #print(rec_image)
+                            #print(dir_hash)
+                        else:
+                            self.file_record_hash[str(fullpath.as_posix())] = rec_image
+                    else:
+                        pass
+
+        print("database done", datetime.now())
+        self.progress_dialog.close()
+        #QApplication.restoreOverrideCursor()
+
 
     def btnReadTreeClicked(self):
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
-        self.read_tree()
+        self.build_index()
+        self.load_dir()
 
         QApplication.restoreOverrideCursor()
 
@@ -409,7 +544,7 @@ class DolfinIDWindow(QMainWindow, form_class):
         fullpath = Path(filepath,filename).resolve()        
         str_fullpath = str(fullpath.as_posix())
         record = DolfinImageFile.get(type='file',path=str_fullpath)
-        self.upload_file(record)
+        ret = self.upload_file(record)
 
         QApplication.restoreOverrideCursor()
 
@@ -419,73 +554,53 @@ class DolfinIDWindow(QMainWindow, form_class):
 
         QApplication.setOverrideCursor(Qt.WaitCursor)
 
-        record_list = DolfinImageFile.filter(type='file',uploaded=False)
+        if self.cbxUploadReset.isChecked():
+            record_list = DolfinImageFile.filter(type='file')
+        else:
+            record_list = DolfinImageFile.filter(type='file',uploaded=False)
         print("record count:",len(record_list))
         total_count = len(record_list)
+        current_count = 0
+        error_count = 0
+        already_exist_count = 0
+        upload_success_count = 0
         #return
+
+        self.progress_dialog = ProgressDialog()
+        self.progress_dialog.setModal(True)
+        label_text = "Uploading image files {} of {}...".format(current_count,total_count)
+        self.progress_dialog.lbl_text.setText(label_text)
+        self.progress_dialog.pb_progress.setValue(0)
+        self.progress_dialog.show()
+
         for index, record in enumerate(record_list):
+            current_count += 1
+            if current_count % 100 == 0:
+                print( current_count, "out of", total_count, "uploaded.")
+
+            self.progress_dialog.pb_progress.setValue(int((current_count/float(total_count))*100))
+            label_text = "Uploading image files {} of {}...".format(current_count, total_count)
+            self.progress_dialog.lbl_text.setText(label_text)
+            self.progress_dialog.update()
+            QApplication.processEvents()
+
             #fullpath = record.path
-            self.upload_file(record)
+            result = self.upload_file(record)
+            if result == RET_UPLOAD_ERROR:
+                error_count += 1
+            elif result == RET_ALREADY_EXIST:
+                already_exist_count += 1
+            elif result == RET_UPLOAD_SUCCESS:
+                upload_success_count += 1
+
+        print("success:", upload_success_count)
+        print("error:", error_count)
+        print("already exist:", already_exist_count)
+        print("total:", total_count)
+        self.progress_dialog.close()
 
         QApplication.restoreOverrideCursor()
 
-
-    def read_tree(self):
-        print("reading tree", datetime.now())
-        rootdir = self.data_folder
-        self.setRootdir(rootdir)
-
-        #fd = open("output.log","w")
-        print("checking database", datetime.now())
-        dir_hash = {}
-        #rec_list = [ self.dir_list, ]
-        with db.atomic() as txn:
-            for list in [ self.dir_list, self.file_list ]:
-                for f in list:
-                    #print(f)
-                    fullpath = Path(f['path'])
-                    #stem = fullpath.stem
-                    fname = fullpath.name
-                    rec_image = DolfinImageFile.get_or_none( path=str(fullpath.as_posix()) )
-                    if not rec_image:
-                        #print("no such record"+str(f)+"\n")
-                        #print(str(dir_hash))
-                        #print(stem)
-                        if str(fullpath.parent.as_posix()) in dir_hash.keys():
-                            parent = dir_hash[str(fullpath.parent.as_posix())]
-                            #print(fullpath.parent)
-                        else:
-                            #print("no key")
-                            #print(dir_hash.keys(), fullpath.parent)
-                            parent = None
-                        rec_image = DolfinImageFile()
-                        rec_image.path = str(fullpath.as_posix())
-                        rec_image.type = f['type']
-                        rec_image.name = fname
-                        rec_image.file_created = f['file_created']
-                        rec_image.file_modified = f['file_modified']
-                        rec_image.size = f['size']
-                        rec_image.md5hash = f['md5hash']
-                        rec_image.uploaded = False
-                        rec_image.exifdatetime = f['exifdatetime']
-                        rec_image.parent=parent
-                        rec_image.save()
-                        if f['type'] == 'dir':
-                            dir_hash[str(fullpath.as_posix())] = rec_image
-                            #print(rec_image)
-                            #print(dir_hash)
-                        else:
-                            self.file_record_hash[str(fullpath.as_posix())] = rec_image
-                    else:
-                        pass
-        #fd.writepstr(dir_hash))
-        #print(dir_hash)
-                #print("already_exist", f)
-            #print(stem, fname)
-            #fd.write(str(f)+"\n")
-        #fd.close()
-        print("database done", datetime.now())
-        #print(self.fs_list)
 
     def treeViewDoubleClicked(self):
         index = self.treeView.currentIndex()
@@ -497,6 +612,8 @@ class DolfinIDWindow(QMainWindow, form_class):
         #rootdir = 
         #rootpath = Path(rootdir).resolve()
         #stat_result = os.stat(rootpath)
+        self.temp_file_list = []
+        self.temp_dir_list = []
 
         #self.fs_list.append([str(rootpath),'dir',datetime.fromtimestamp(stat_result.st_ctime), datetime.fromtimestamp(stat_result.st_mtime),0])
 
@@ -517,44 +634,14 @@ class DolfinIDWindow(QMainWindow, form_class):
                 #exif_info = self.get_exif_info(filepath)
                 image_record = DolfinImageFile.get_or_none( path=str(filepath.as_posix()) )
                 if image_record is None:
-                    fileinfo = self.get_file_info(filepath)
-                    #print(file_path.suffix)#if file_path.suffix != 
-                    #print(file_path, rootdir)
-                    #rel_path = file_path.relative_to(Path(rootdir).resolve())
-                    #self.file_list.append([str(filepath),'file',datetime.fromtimestamp(stat_result.st_ctime),datetime.fromtimestamp(stat_result.st_mtime),stat_result.st_size, exif_info['date']])
-                    fileinfo_hash = {   'path': str(filepath), 
-                                        'type': 'file', 
-                                        'file_created':datetime.fromtimestamp(fileinfo['ctime']), 
-                                        'file_modified':datetime.fromtimestamp(fileinfo['mtime']), 
-                                        'size': fileinfo['size'],
-                                        'md5hash': fileinfo['md5hash'],
-                                        'exifdatetime': fileinfo['exifdatetime'],
-                                    }           
-                    self.file_list.append( fileinfo_hash )
+                    self.temp_file_list.append({'path':str(filepath),'type':'file'})
+                    continue
 
             if jpg_count + len(dirs) > 0:
                 dirpath = Path(root).resolve()
-                dirinfo = self.get_file_info(dirpath)
-                #stat_result = os.stat(dirpath)
-                #print(dir_path, rootdir)
-                #rel_path = dir_path.relative_to(Path(rootdir).resolve())
-                #if str(rel_path) == ".":
-                #    rel_path = Path(rootdir).resolve()
-                dir_record = DolfinImageFile.get_or_none( path=str(dirpath.as_posix()) )
-                if dir_record is None:
-
-                    dirinfo_hash = {   'path': str(dirpath), 
-                                        'type': 'dir', 
-                                        'file_created':datetime.fromtimestamp(dirinfo['ctime']), 
-                                        'file_modified':datetime.fromtimestamp(dirinfo['mtime']), 
-                                        'size': jpg_count,
-                                        'md5hash': '',
-                                        'exifdatetime': datetime.fromtimestamp(dirinfo['ctime']),
-                                    }           
-                    self.dir_list.append( dirinfo_hash )
-
-                #self.dir_list.append([str(dir_path),'dir',datetime.fromtimestamp(stat_result.st_ctime),datetime.fromtimestamp(stat_result.st_mtime),jpg_count,datetime.fromtimestamp(stat_result.st_ctime).strftime("%Y-%m-%d")])
-
+                self.temp_dir_list.append({'path':str(dirpath),'type':'dir','size':jpg_count})
+                
+                continue               
     
     def closeEvent(self, event):
         #if self.mainview_dlg is not None:
@@ -564,19 +651,21 @@ class DolfinIDWindow(QMainWindow, form_class):
 
     def write_settings(self):
         #print("write settings", str(self.data_folder))
-        settings = QSettings(QSettings.IniFormat, QSettings.UserScope,"DiploSoft", "DolfinID")
+        settings = QSettings(QSettings.IniFormat, QSettings.UserScope,"DiploSoft", "DolfinSync")
 
         settings.beginGroup("Defaults")
         settings.setValue("Server Address", self.server_address)
+        settings.setValue("Server Port", self.server_port)
         settings.setValue("Data Folder", str(self.data_folder))
         settings.endGroup()
 
     def read_settings(self):
         #print("read settings")
-        settings = QSettings(QSettings.IniFormat, QSettings.UserScope,"DiploSoft", "DolfinID")
+        settings = QSettings(QSettings.IniFormat, QSettings.UserScope,"DiploSoft", "DolfinSync")
 
         settings.beginGroup("Defaults")
         self.server_address = settings.value("Server Address", "")
+        self.server_port = settings.value("Server Port", "")
         self.data_folder = Path(settings.value("Data Folder", "./"))
         self.working_folder = self.data_folder
         settings.endGroup()
@@ -596,12 +685,15 @@ class DolfinIDWindow(QMainWindow, form_class):
         file_info['mtime'] = stat_result.st_mtime
         file_info['ctime'] = stat_result.st_ctime
 
+        if os.path.isdir(fullpath):
+            file_info['type'] = 'dir'
+        else:
+            file_info['type'] = 'file'
+
         if os.path.isdir( fullpath ):
             return file_info
 
         file_info['size'] = stat_result.st_size
-
-        # 나중에 md5 와 exif 를 합칠 것.
 
         ''' md5 hash value '''
         file_info['md5hash'], image_data = self.get_md5hash_info(fullpath)
@@ -710,7 +802,7 @@ if __name__ == "__main__":
     app.setWindowIcon(QIcon('marc_icon.png'))
 
     #WindowClass의 인스턴스 생성
-    myWindow = DolfinIDWindow()
+    myWindow = DolfinSyncWindow()
 
     #프로그램 화면을 보여주는 코드
     myWindow.show()

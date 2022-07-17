@@ -25,7 +25,12 @@
             <a class="nav-link text-white" href="{% url 'dfw_user_login' %}" id="navbarDropdown" role="button">Login</a>
             {% endif %}
           </li>
+          {% if user_obj == None %}
+          <li class="nav-item dropdown">
+            <a class="nav-link text-white" href="{% url 'dfw_user_register' %}" id="navbarDropdown" role="button">Register</a>
+          </li>
+          {% endif %}
         </ul>
-      </div>
+    </div>
     </div>
   </nav>
