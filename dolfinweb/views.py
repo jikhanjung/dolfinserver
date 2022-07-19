@@ -1,4 +1,4 @@
-from dolfinrest.models import DolfinDate, DolfinImage, DolfinBox
+from dolfinrest.models import DolfinDate, DolfinImage, DolfinBox, DolfinUser
 from django.urls import reverse, reverse_lazy
 from django.http import HttpResponse, HttpResponseRedirect, FileResponse, JsonResponse
 from .models import UserActivity
@@ -27,7 +27,7 @@ ITEMS_PER_PAGE = 20
  
 def get_user_obj( request ):
     user_obj = request.user
-    print(user_obj)
+    #print(user_obj)
     if str(user_obj) == 'AnonymousUser':
         return None
     #print("user_obj:", user_obj)
@@ -47,7 +47,7 @@ def get_user_obj( request ):
     return user_obj
 
 def check_admin(user_obj):
-    if 'Professors' in user_obj.groupname_list:
+    if 'Administrators' in user_obj.groupname_list:
         #print(user_obj.username)
         return True
     else:
@@ -395,3 +395,139 @@ def dfw_user_register(request):
         form = NewUserForm()
 
     return render(request, 'dolfinweb/dfw_user_register_form.html', {'form': form })
+
+
+# User management by admin
+@login_required(login_url=LOGIN_URL)
+def dfw_user_list_admin(request):
+    user_obj = get_user_obj( request )
+    if not check_admin( user_obj ):
+        print("check admin fail")
+        return HttpResponseRedirect('/dolfinweb')
+
+    user_list = DolfinUser.objects.all().order_by('username')
+    for user in user_list:
+        user.groupname_list = []
+        for g in user.groups.all():
+            user.groupname_list.append(g.name)
+    print(user_list)
+
+    #print(user_obj.username)
+    return render(request, 'dolfinweb/dfw_user_list_admin.html', {'user_obj': user_obj, 'user_list': user_list} )    
+
+@login_required(login_url=LOGIN_URL)
+def dfw_user_detail_admin(request,pk):
+    user_obj = get_user_obj( request )
+    check_admin( user_obj )
+
+    user = get_object_or_404(DolfinUser, pk=pk)
+    #groups = user.groups.all()
+    #print(groups)
+
+    #print(user_obj.username)
+    return render(request, 'dolfinweb/dfw_user_detail_admin.html', {'user_obj': user_obj,'user': user} )
+
+@login_required(login_url=LOGIN_URL)
+def dfw_user_activity_list_admin(request,pk):
+    user_obj = get_user_obj( request )
+    if not check_admin( user_obj ):
+        #print("check admin fail")
+        return HttpResponseRedirect('/dolfinweb')
+    
+    activity_list = UserActivity.objects.filter(user=pk).order_by('-activity_datetime')
+
+    #print(activity_list)
+    #print(user_obj.username)
+    #return render(request, 'kprdb/user_list_admin.html', {'user_obj': user_obj, 'activity_list': activity_list} )
+
+    paginator = Paginator(activity_list, ITEMS_PER_PAGE) # Show ITEMS_PER_PAGE contacts per page.
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'dolfinweb/dfw_activity_list_admin.html', {'activity_list': activity_list, 'page_obj': page_obj, 'user_obj': user_obj})
+
+@login_required(login_url=LOGIN_URL)
+def dfw_user_add_admin(request):
+    user_obj = get_user_obj( request )
+    check_admin( user_obj )
+
+    if request.method == 'POST':
+        form = NewUserForm(data=request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('dfw_user_list_admin'))
+
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = NewUserForm()
+
+    return render(request, 'dolfinweb/dfw_user_register_form.html', {'form': form, 'user_obj': user_obj })
+
+@login_required(login_url=LOGIN_URL)
+def dfw_user_edit_admin(request,pk):
+    user_obj = get_user_obj( request )
+    check_admin( user_obj )
+
+    user = get_object_or_404(DolfinUser, pk=pk)
+    if request.method == 'POST':
+        form = UserForm(data=request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('dfw_user_detail_admin',args=(user.id,)))
+
+    # if a GET (or any other method) we'll create a blank form
+    else:
+        form = UserForm(instance=user)
+
+    return render(request, 'dolfinweb/dfw_user_form_admin.html', {'form': form,'user_obj':user_obj,'user':user})
+
+@login_required(login_url=LOGIN_URL)
+def dfw_user_change_password_admin(request,pk):
+    user_obj = get_user_obj( request )
+    check_admin( user_obj )
+    print(user_obj.group)
+
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user)  # Important!
+            messages.success(request, 'Your password was successfully updated!')
+            return redirect('/dolfinweb/')
+        else:
+            messages.error(request, 'Please correct the error below.')
+    else:
+        form = PasswordChangeForm(request.user)
+    return render(request, 'dolfinweb/dfw_user_change_password.html', {
+        'user_obj':user_obj,'form': form
+    })    
+
+@login_required(login_url=LOGIN_URL)
+def dfw_user_delete_admin(request,pk):
+    user_obj = get_user_obj( request )
+    check_admin( user_obj )
+
+    user = get_object_or_404(DolfinUser, pk=pk)
+    user.delete()
+    return HttpResponseRedirect(reverse('dfw_user_list_admin'))    
+
+@login_required(login_url=LOGIN_URL)
+def dfw_all_activity_list_admin(request):
+    user_obj = get_user_obj( request )
+    if not check_admin( user_obj ):
+        #print("check admin fail")
+        return HttpResponseRedirect('/dolfinweb')
+    
+    activity_list = UserActivity.objects.all().order_by('-activity_datetime')
+
+    #print(activity_list)
+    #print(user_obj.username)
+    #return render(request, 'kprdb/user_list_admin.html', {'user_obj': user_obj, 'activity_list': activity_list} )
+
+    paginator = Paginator(activity_list, ITEMS_PER_PAGE) # Show ITEMS_PER_PAGE contacts per page.
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'dolfinweb/dfw_activity_list_admin.html', {'activity_list': activity_list, 'page_obj': page_obj, 'user_obj': user_obj})
+
+@login_required(login_url=LOGIN_URL)
+def dfw_history_overview(request):
+    return    

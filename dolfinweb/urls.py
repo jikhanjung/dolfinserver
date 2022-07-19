@@ -21,4 +21,14 @@ urlpatterns = [
     path('dfw_user_login/', views.dfw_user_login, name='dfw_user_login'),
     path('dfw_user_logout/', views.dfw_user_logout, name='dfw_user_logout'),
 
+    # user admin
+    path('dfw_user_list_admin/', views.dfw_user_list_admin, name='dfw_user_list_admin'),
+    path('dfw_user_add_admin/', views.dfw_user_add_admin, name='dfw_user_add_admin'),
+    path('dfw_user_edit_admin/<str:pk>', views.dfw_user_edit_admin, name='dfw_user_edit_admin'),
+    path('dfw_user_delete_admin/<str:pk>', views.dfw_user_delete_admin, name='dfw_user_delete_admin'),
+    path('dfw_user_change_password_admin/<str:pk>', views.dfw_user_change_password_admin, name='dfw_user_change_password_admin'),
+    path('dfw_user_detail_admin/<str:pk>', views.dfw_user_detail_admin, name='dfw_user_detail_admin'),
+    path('dfw_user_activity_list_admin/<str:pk>', views.dfw_user_activity_list_admin, name='dfw_user_activity_list_admin'),
+    path('dfw_all_activity_list_admin/', views.dfw_all_activity_list_admin, name='dfw_all_activity_list_admin'),
+    path('dfw_history_overview/', views.dfw_history_overview, name='dfw_history_overview'),
 ]

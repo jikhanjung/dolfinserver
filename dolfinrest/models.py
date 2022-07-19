@@ -13,16 +13,29 @@ class DolfinDate(models.Model):
     @property
     def get_formatted_date(self):
         return self.observation_date.strftime("%Y-%m-%d")
-        
+
+class DolfinDirname(models.Model):
+    observation_date = models.DateField()
+    dirname = models.CharField(max_length=200, blank=True, default='')
+    image_count = models.IntegerField(default=0,blank=True,null=True)
+    last_modified = models.DateTimeField(auto_now=True)
+    class Meta:
+        ordering = ["observation_date","dirname"]
+                
 
 def upload_path(instance, filename): 
     # return f'posts/{instance.content}/{filename}'
     dolfin_date = instance.exifdatetime.date() #.strftime('%Y-%m-%d')
+    dirname = instance.dirname
 
     #print(dolfin_date)
     dolfin_date, created = DolfinDate.objects.get_or_create(observation_date=dolfin_date)
     dolfin_date.image_count += 1
     dolfin_date.save()
+    dolfin_dir, created = DolfinDirname.objects.get_or_create(observation_date=dolfin_date,dirname=dirname)
+    dolfin_dir.image_count += 1
+    dolfin_dir.save()
+    
     return 'nas/{:4d}/{:02d}/{:02d}/{}'.format(instance.exifdatetime.year, instance.exifdatetime.month, instance.exifdatetime.day,filename)
 
 # Create your models here.

@@ -10,10 +10,10 @@
         {% if user_list %}
             {% for user in user_list %}
             <tr>
-                <td><a href="{% url 'user_detail_admin' user.id %}">{{ user.username}}</a></td>
+                <td><a href="{% url 'dfw_user_detail_admin' user.id %}">{{ user.username}}</a></td>
                 <td>{{ user.last_name}}{{ user.first_name }}</td>
                 <td>{% for gn in user.groupname_list %}{{gn}} {%endfor%}</td>
-                <td><a href="{% url 'user_activity_list_admin' user.id %}">접속 기록</a></td>
+                <td><a href="{% url 'dfw_user_activity_list_admin' user.id %}">접속 기록</a></td>
                 <td><a href="#">편집 내역</a></td>
             </tr>
             {% endfor %}
@@ -25,12 +25,12 @@
         <tr><td colspan="5">
             <div class="container">
                 <div class="row">
-                    <div class="col">{% include "paginator.html" %}</div>
+                    <div class="col">{% include "dfwpaginator.html" %}</div>
                     <div class="col text-end">
                         {% if user_obj %}
-                            <a class="btn btn-primary btn-sm" role="button" href="{% url 'user_add_admin'%}">Add</a>
+                            <a class="btn btn-info btn-sm text-white" role="button" href="{% url 'dfw_user_add_admin'%}">Add</a>
                         {% else %}
-                            <button class="btn btn-primary btn-sm" role="button" href="#" disabled>Add</button>
+                            <button class="btn btn-info btn-sm text-white" role="button" href="#" disabled>Add</button>
                         {% endif %}
                     </div>
                 </div>

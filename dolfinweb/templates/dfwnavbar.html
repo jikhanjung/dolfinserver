@@ -14,6 +14,18 @@
               <li><a class="dropdown-item" href="{% url 'dfw_date_list' %}">관찰일자 목록</a></li>
             </ul>
           </li>
+          {% if 'Administrators' in user_obj.groupname_list %}
+          <li class="nav-item dropdown">
+            <a class="nav-link text-white dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              관리
+            </a>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="{% url 'dfw_user_list_admin' %}">사용자 목록</a></li>
+              <li><a class="dropdown-item" href="{% url 'dfw_all_activity_list_admin' %}">접속기록</a></li>
+              <li><a class="dropdown-item" href="{% url 'dfw_history_overview' %}">편집기록</a></li>
+            </ul>
+          </li>
+          {% endif%}
           <li class="nav-item dropdown">
             {% if user_obj %}
             <a class="nav-link text-white dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">{{user_obj.username}}</a>
@@ -22,12 +34,12 @@
                 <li><a class="dropdown-item" href="{% url 'dfw_user_logout' %}">로그아웃</a></li>
             </ul>
             {% else %}
-            <a class="nav-link text-white" href="{% url 'dfw_user_login' %}" id="navbarDropdown" role="button">Login</a>
+            <a class="nav-link text-white" href="{% url 'dfw_user_login' %}" id="navbarDropdown" role="button">로그인</a>
             {% endif %}
           </li>
           {% if user_obj == None %}
           <li class="nav-item dropdown">
-            <a class="nav-link text-white" href="{% url 'dfw_user_register' %}" id="navbarDropdown" role="button">Register</a>
+            <a class="nav-link text-white" href="{% url 'dfw_user_register' %}" id="navbarDropdown" role="button">가입</a>
           </li>
           {% endif %}
         </ul>

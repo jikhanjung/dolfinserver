@@ -664,10 +664,13 @@ class DolfinSyncWindow(QMainWindow, form_class):
         settings = QSettings(QSettings.IniFormat, QSettings.UserScope,"DiploSoft", "DolfinSync")
 
         settings.beginGroup("Defaults")
-        self.server_address = settings.value("Server Address", "")
-        self.server_port = settings.value("Server Port", "")
-        self.data_folder = Path(settings.value("Data Folder", "./"))
+        self.server_address = settings.value("Server Address", DEFAULT_IP_ADDRESS)
+        self.server_port = settings.value("Server Port", DEFAULT_PORT)
+        self.data_folder = Path(settings.value("Data Folder", "."))
         self.working_folder = self.data_folder
+        self.edtServerAddress.setText(self.server_address)
+        self.edtPortNumber.setText(self.server_port)
+        self.edtDataFolder.setText(str(self.data_folder))
         settings.endGroup()
 
 

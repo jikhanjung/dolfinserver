@@ -14,11 +14,11 @@
 <div class="container">
     <div class="row">
         <div class="col text-center">
-            <a class="btn btn-primary" role="button" href="{% url 'dfw_user_edit_admin' user.id%}">Edit</a>
-            <button class="btn btn-primary" role="button" href="#" disabled>Change Password</button>
-            <!--a class="btn btn-primary" role="button" href="{% url 'user_change_password_admin' user.id%}">Change Password</a-->
-            <a class="btn btn-primary" role="button" href="{% url 'dfw_user_delete_admin' user.id%}">Delete</a>
-            <a class="btn btn-primary" role="button" href="{% url 'dfw_user_list_admin'%}">List</a>
+            <a class="btn btn-info text-white" role="button" href="{% url 'dfw_user_edit_admin' user.id%}">Edit</a>
+            <button class="btn btn-info text-white" role="button" href="#" disabled>Change Password</button>
+            <!--a class="btn btn-primary" role="button" href="{% url 'dfw_user_change_password_admin' user.id%}">Change Password</a-->
+            <a class="btn btn-info text-white" role="button" href="{% url 'dfw_user_delete_admin' user.id%}" onclick="return confirm('정말 삭제하시겠습니까?')">Delete</a>
+            <a class="btn btn-info text-white" role="button" href="{% url 'dfw_user_list_admin'%}">List</a>
         </div>
     </div>
 </div>
