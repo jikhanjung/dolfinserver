@@ -7,3 +7,4 @@ scripts/json/*
 log.txt
 dolfinid.db
 dolfinsync.db
+db.sqlite3.old

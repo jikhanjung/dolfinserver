@@ -28,6 +28,8 @@ def upload_path(instance, filename):
     dolfin_date = instance.exifdatetime.date() #.strftime('%Y-%m-%d')
     dirname = instance.dirname
 
+    instance.obsdate = dolfin_date
+
     #print(dolfin_date)
     dolfin_date, created = DolfinDate.objects.get_or_create(observation_date=dolfin_date)
     dolfin_date.image_count += 1
@@ -46,6 +48,7 @@ class DolfinImage(models.Model):
     filename = models.CharField(max_length=100, blank=True, default='') 
     md5hash = models.CharField(max_length=200, blank=True, default='')
     exifdatetime = models.DateTimeField(blank=True,null=True)
+    obsdate = models.DateField(blank=True,null=True)
     #imagefile = models.ImageField(upload_to ='%Y/%m/%d/')
     imagefile = models.ImageField(upload_to=upload_path)
     dirname = models.CharField(max_length=200, blank=True, default='')
