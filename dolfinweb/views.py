@@ -88,6 +88,7 @@ def dfw_image_list(request, obs_date):
         image_list = image_list.filter(finbox_count=0)
     #print(image_list)
     print("image list 4", datetime.now())
+    print(image_list.explain())
 
     paginator = Paginator(image_list, ITEMS_PER_PAGE) # Show ITEMS_PER_PAGE contacts per page.
     print("image list 4.1", datetime.now())
