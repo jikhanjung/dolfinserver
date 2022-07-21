@@ -53,7 +53,9 @@ class DolfinImage(models.Model):
 
     class Meta:
         ordering = ["exifdatetime","filename"]
-
+        indexes = [
+           models.Index(fields=['exifdatetime', 'filename',]),
+        ]
     @property
     def get_thumbnail_url(self):
         image_url = self.imagefile.url
