@@ -18,6 +18,7 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.cache import never_cache
+from datetime import datetime
 
 
 LOGIN_URL = 'dfw_user_login'
@@ -69,24 +70,31 @@ def dfw_date_list(request):
 
 @never_cache
 def dfw_image_list(request, obs_date):
+    print("image list 1", datetime.now())
+
     user_obj = get_user_obj( request )
     get_obs_date = request.POST.get('obs_date','')
     if get_obs_date != '':
         obs_date = get_obs_date
 
     filter1 = request.POST.get('filter1','all')
+    print("image list 2", datetime.now())
     
     image_list = DolfinImage.objects.filter(exifdatetime__date=obs_date)
 
+    print("image list 3", datetime.now())
     if filter1 == 'no_fins':
         #print("filter1 on: no fins")
         image_list = image_list.filter(finbox_count=0)
     #print(image_list)
+    print("image list 4", datetime.now())
 
     paginator = Paginator(image_list, ITEMS_PER_PAGE) # Show ITEMS_PER_PAGE contacts per page.
     page_number = request.GET.get('page',1)
     page_obj = paginator.get_page(page_number)
     image_id_list = [ img.id for img in page_obj ]
+    print("image list 5", datetime.now())
+
     obs_date_list = DolfinDate.objects.all()
 
     request.session['obs_date'] = obs_date
@@ -94,6 +102,7 @@ def dfw_image_list(request, obs_date):
     request.session['last_list'] = 'dfw_image_list'
     request.session['image_id_list'] = image_id_list
     print("page_number in image_list:", page_number)
+    print("image list 6", datetime.now())
 
     context = {
         'image_list': image_list, 
