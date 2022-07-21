@@ -26,7 +26,8 @@ import io
 PROGRAM_NAME = "DolfinSync"
 PROGRAM_VERSION = "0.0.1"
 
-DEFAULT_IP_ADDRESS = "222.233.253.74"
+#DEFAULT_IP_ADDRESS = "222.233.253.74"
+DEFAULT_IP_ADDRESS = "127.0.0.1"
 DEFAULT_PORT = "8000"
 
 RET_ALREADY_EXIST = 1
@@ -402,29 +403,31 @@ class DolfinSyncWindow(QMainWindow, form_class):
             return RET_ALREADY_EXIST
 
 
-        data_hash = {'filename':record.name,'md5hash':record.md5hash,'exifdatetime':record.exifdatetime, 'dirname':dirname}
+        #data_hash = {'filename':record.name,'md5hash':record.md5hash,'exifdatetime':record.exifdatetime, 'dirname':dirname,'obsdate':record.exifdatetime.strftime('%Y-%m-%d')}
+        data_hash = {'filename':record.name,'md5hash':record.md5hash,'exifdatetime':record.exifdatetime, 'dirname':dirname,'obsdate':record.exifdatetime.date()}
 
         fd = open(fullpath, 'rb')
         file_hash = {'imagefile': fd}   
         #fields = {'title':'test','filename':item_text_list[1],'md5hash':hash_val,"imagefile": fd}
-        #print(fields)
+        #print(data_hash)
 
         #post_url = "http://222.233.253.74:8000/dolfinrest/dolfinimage_list/"
         post_url = "http://{}:{}/dolfinrest/dolfinimage_list/".format(hostname,portnumber)
 
         #print(requests.Request('POST', post_url, files=file_hash, data=data_hash).prepare().body)
         response = requests.post(post_url, files=file_hash,data=data_hash)
+        #print(response)
         
         if int( response.status_code / 100 ) == 2:
         #log = open("log.txt","w")
         #log.write(str(response.json()))
         #log.close()
-        #print(response)
         #print(response.json())
             record.uploaded = True
             record.save()
             return RET_UPLOAD_SUCCESS
         elif int( response.status_code / 100 ) == 5:
+            #print(response)
             record.uploaded = False
             record.save()
             return RET_UPLOAD_ERROR

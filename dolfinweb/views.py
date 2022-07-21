@@ -70,7 +70,7 @@ def dfw_date_list(request):
 
 @never_cache
 def dfw_image_list(request, obs_date):
-    print("image list 1", datetime.now())
+    #print("image list 1", datetime.now())
 
     user_obj = get_user_obj( request )
     get_obs_date = request.POST.get('obs_date','')
@@ -78,26 +78,26 @@ def dfw_image_list(request, obs_date):
         obs_date = get_obs_date
 
     filter1 = request.POST.get('filter1','all')
-    print("image list 2", datetime.now())
+    #print("image list 2", datetime.now())
     
     image_list = DolfinImage.objects.filter(obsdate=obs_date)
 
-    print("image list 3", datetime.now())
+    #print("image list 3", datetime.now())
     if filter1 == 'no_fins':
         #print("filter1 on: no fins")
         image_list = image_list.filter(finbox_count=0)
     #print(image_list)
-    print("image list 4", datetime.now())
-    print(image_list.explain())
-    print(image_list.query)
+    #print("image list 4", datetime.now())
+    #print(image_list.explain())
+    #print(image_list.query)
 
     paginator = Paginator(image_list, ITEMS_PER_PAGE) # Show ITEMS_PER_PAGE contacts per page.
-    print("image list 4.1", datetime.now())
+    #print("image list 4.1", datetime.now())
     page_number = request.GET.get('page',1)
     page_obj = paginator.get_page(page_number)
-    print("image list 4.2", datetime.now())
+    #print("image list 4.2", datetime.now())
     image_id_list = [ img.id for img in page_obj ]
-    print("image list 5", datetime.now())
+    #print("image list 5", datetime.now())
 
     obs_date_list = DolfinDate.objects.all()
 
@@ -105,8 +105,8 @@ def dfw_image_list(request, obs_date):
     request.session['page_number'] = page_number
     request.session['last_list'] = 'dfw_image_list'
     request.session['image_id_list'] = image_id_list
-    print("page_number in image_list:", page_number)
-    print("image list 6", datetime.now())
+    #print("page_number in image_list:", page_number)
+    #print("image list 6", datetime.now())
 
     context = {
         'image_list': image_list, 
@@ -118,7 +118,7 @@ def dfw_image_list(request, obs_date):
     }
     result = render(request, 'dolfinweb/dfw_image_list.html', context)
 
-    print("image list 7", datetime.now())
+    #print("image list 7", datetime.now())
     return result
 
 
@@ -174,9 +174,12 @@ def get_prev_next_finbox(a_finbox, a_finbox_id_list):
     return prev_finbox, next_finbox, page_number_diff
 
 def dfw_image_view(request, pk):
+    print("image view 1", datetime.now())
     user_obj = get_user_obj( request )
 
+    print("image view 2", datetime.now())
     image = DolfinImage.objects.get(pk=pk)
+    print("image view 3", datetime.now())
     
     last_list = request.session['last_list']
     pn = request.session.get('page_number') or 1
@@ -185,7 +188,9 @@ def dfw_image_view(request, pk):
     #print("page_number:",page_number)
     #if last_list == 'dfw_image_list':
     image_id_list = request.session['image_id_list']
+    print("image view 4", datetime.now())
     prev_image, next_image, page_number_diff = _get_prev_next_image_and_page(image,image_id_list)
+    print("image view 5", datetime.now())
     #if page_number != request.session['page_number']:
     if page_number_diff != 0 :
         page_number += page_number_diff
@@ -194,6 +199,7 @@ def dfw_image_view(request, pk):
         page_obj = paginator.get_page(page_number)
         request.session['page_number'] = page_number
         request.session['image_id_list'] = [ img.id for img in page_obj ]
+    print("image view 5", datetime.now())
         
     context = {
         'image': image, 
@@ -204,6 +210,7 @@ def dfw_image_view(request, pk):
         'prev_image': prev_image,
         'next_image': next_image,
     }
+    print("image view 6", datetime.now())
 
     return render(request, 'dolfinweb/dfw_image_view.html', context)
 

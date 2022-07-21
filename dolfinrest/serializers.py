@@ -5,4 +5,4 @@ class DolfinImageSerializer(serializers.ModelSerializer):
     imagefile = serializers.ImageField(use_url=True)
     class Meta:
         model = DolfinImage
-        fields = [ 'filename', 'md5hash', 'exifdatetime', 'imagefile', 'dirname' ]
+        fields = [ 'filename', 'md5hash', 'exifdatetime', 'imagefile', 'dirname','obsdate']

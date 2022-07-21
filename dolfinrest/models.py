@@ -25,16 +25,17 @@ class DolfinDirname(models.Model):
 
 def upload_path(instance, filename): 
     # return f'posts/{instance.content}/{filename}'
-    dolfin_date = instance.exifdatetime.date() #.strftime('%Y-%m-%d')
+    l_date = instance.exifdatetime.date() #.strftime('%Y-%m-%d')
     dirname = instance.dirname
 
-    instance.obsdate = dolfin_date
+    #instance.obsdate = dolfin_date.strftime('%Y-%m-%d')
+    #instance.obsdate = l_date
 
     #print(dolfin_date)
-    dolfin_date, created = DolfinDate.objects.get_or_create(observation_date=dolfin_date)
+    dolfin_date, created = DolfinDate.objects.get_or_create(observation_date=l_date)
     dolfin_date.image_count += 1
     dolfin_date.save()
-    dolfin_dir, created = DolfinDirname.objects.get_or_create(observation_date=dolfin_date,dirname=dirname)
+    dolfin_dir, created = DolfinDirname.objects.get_or_create(observation_date=l_date,dirname=dirname)
     dolfin_dir.image_count += 1
     dolfin_dir.save()
     
