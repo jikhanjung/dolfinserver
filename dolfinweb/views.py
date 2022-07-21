@@ -115,8 +115,10 @@ def dfw_image_list(request, obs_date):
         'obs_date_list': obs_date_list,
         'filter1': filter1,
     }
+    result = render(request, 'dolfinweb/dfw_image_list.html', context)
 
-    return render(request, 'dolfinweb/dfw_image_list.html', context)
+    print("image list 7", datetime.now())
+    return result
 
 
 def _get_prev_next_image_and_page(a_image,a_image_id_list):
