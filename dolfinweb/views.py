@@ -80,7 +80,7 @@ def dfw_image_list(request, obs_date):
     filter1 = request.POST.get('filter1','all')
     print("image list 2", datetime.now())
     
-    image_list = DolfinImage.objects.filter(exifdatetime__date=obs_date)
+    image_list = DolfinImage.objects.filter(obsdate=obs_date)
 
     print("image list 3", datetime.now())
     if filter1 == 'no_fins':
@@ -89,6 +89,7 @@ def dfw_image_list(request, obs_date):
     #print(image_list)
     print("image list 4", datetime.now())
     print(image_list.explain())
+    print(image_list.query)
 
     paginator = Paginator(image_list, ITEMS_PER_PAGE) # Show ITEMS_PER_PAGE contacts per page.
     print("image list 4.1", datetime.now())
