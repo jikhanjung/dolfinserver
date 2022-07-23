@@ -209,13 +209,18 @@ class DolfinSyncWindow(QMainWindow, form_class):
 
         #self.treeView.doubleClicked.connect(self.treeViewDoubleClicked)
 
+        self.btnTest.clicked.connect(self.btnTestClicked)
+        self.btnTest.hide()
         self.btnReadTree.clicked.connect(self.btnReadTreeClicked)
         self.btnLoadTree.clicked.connect(self.btnLoadTreeClicked)
         self.btnLoadTree.hide()
         self.btnSendImage.clicked.connect(self.btnSendImageClicked)
+        self.btnSendImage.hide()
         self.btnSendAll.clicked.connect(self.btnSendAllClicked)
         self.btnOpenFolder.clicked.connect(self.select_folder)
-        #self.data_folder = Path('.')
+        #self.data_folder = Path('.)
+        self.edtServerAddress.textChanged.connect(self.address_changed)
+        self.edtPortNumber.textChanged.connect(self.portno_changed)
 
         self.reset_views()
 
@@ -227,6 +232,17 @@ class DolfinSyncWindow(QMainWindow, form_class):
             self.load_dir()
             self.edtDataFolder.setText(str(self.data_folder))
         self.setWindowTitle("DolfinSync")
+
+    def btnTestClicked(self):
+        print("server:", self.server_address)
+        print("port:", self.server_port)
+        print("data folder:", self.data_folder)
+
+    def address_changed(self):
+        self.server_address = self.edtServerAddress.text()
+
+    def portno_changed(self):
+        self.server_port = self.edtPortNumber.text()
 
     def select_folder(self):
         folder = str(QFileDialog.getExistingDirectory(self, "폴더 선택", str(self.data_folder)))
@@ -678,9 +694,10 @@ class DolfinSyncWindow(QMainWindow, form_class):
 
 
     def open_preferences(self):
-        self.preferences_dialog = PreferencesDialog(self)
-        self.preferences_dialog.parent = self
-        self.preferences_dialog.show()
+        #self.preferences_dialog = PreferencesDialog(self)
+        #self.preferences_dialog.parent = self
+        #self.preferences_dialog.show()
+        pass
 
     def get_file_info(self, fullpath):
 
